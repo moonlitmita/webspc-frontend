@@ -1,36 +1,17 @@
-# webspc-frontend
+WebSPC/webspc-frontend
 
-#### Description
-webspc项目是SPC(统计过程控制)的web实现，采用前后端分离的方式，此为该项目的前端部分。
+Project Introduction
+WebSPC is a web implementation of SPC (Statistical Process Control), developed using a front-end and back-end separation architecture. 
+It is open-source and free.
 
-#### Software Architecture
-Software architecture description
+Project Architecture
+Front-end:
+Framework: Vue 3 + Vite + Pinia
+UI: Element-Plus
+Charting Library: Plotly.js
+Language: TypeScript
 
-#### Installation
+Preview:
+![](src/assets/images/preview_1.png)
+![](src/assets/images/preview_2.png)
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### Instructions
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### Contribution
-
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
-
-
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
