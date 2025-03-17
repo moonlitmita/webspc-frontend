@@ -5,20 +5,43 @@
 */
 
 <template>
-  <el-form :model="loginForm" :rules="rules" class="login-container" @keyup.enter.native="login">
-    <h3>WebSPC 系统登录</h3>
-    <el-form-item>
-      <el-input type="input" placeholder="请输入账户 " v-model="loginForm.username">
-      </el-input>
-    </el-form-item>
-    <el-form-item>
-      <el-input type="password" placeholder="请输入密码" v-model="loginForm.password">
-      </el-input>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="login" :disabled="isButtonDisabled">登录</el-button>
-    </el-form-item>
-  </el-form>
+  <div class="login-page">
+    <el-card class="login-container">
+      <h2 class="login-title">WebSPC</h2>
+      <el-form
+        :model="loginForm"
+        :rules="rules"
+        label-position="top"
+        @keyup.enter.native="login"
+      >
+        <el-form-item label="用户名" prop="username">
+          <el-input
+            v-model="loginForm.username"
+            placeholder="请输入用户名"
+            prefix-icon="User"
+          />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input
+            v-model="loginForm.password"
+            type="password"
+            placeholder="请输入密码"
+            prefix-icon="Lock"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            type="primary"
+            @click="login"
+            :disabled="isButtonDisabled"
+            class="login-button"
+          >
+            登录
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+</div>
 </template>
 <script lang="ts" setup>
 import { computed, reactive } from 'vue'
@@ -33,7 +56,7 @@ const mainStore = useMainStore()
 const router = useRouter()
 const route = useRoute()
 const loginForm = reactive({
-  username: 'admin',
+  username: '',
   password: ''
 })
 const isButtonDisabled = computed(()=> {
@@ -56,24 +79,34 @@ const login = async()=>{
 }
 </script>
 <style lang="less" scoped>
-.login-container {
+.login-page {
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../assets/images/background.jpg');
+  background-size: cover;
+  background-position: center;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 350px;
-  max-width: 350px;
-  background-color: #fff;
-  border: 1px solid #eaeaea;
-  border-radius: 15px;
-  padding: 35px 35px 15px 35px;
-  box-shadow: 0 0 25px #cacaca;
-  h3 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #505450;
-  }
-  :deep(.el-form-item__content) {
-    justify-content: center;
+  justify-content: center;
+  align-items: center;
+  .login-container {
+    width: 400px;
+    margin: 100px auto;
+    padding: 20px;
+    border-radius: 25px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .login-title {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
+      font-size: 24px;
+    }
+    .login-button {
+      width: 100%;
+    }
   }
 }
 </style>

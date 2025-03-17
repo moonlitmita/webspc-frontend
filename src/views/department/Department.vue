@@ -30,10 +30,16 @@
             :prop="item.prop"
             :width="item.width"
           />
-          <el-table-column fixed="right" label="操作" width="150">
+          <el-table-column fixed="right" label="操作" width="200">
             <template #default="scope">
-              <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-button type="danger" size="small" @click="handleDelete(scope.row)">删除</el-button>
+              <el-button size="small" @click="handleEdit(scope.row)">
+                <el-icon style="font-size: 13px; margin-right: 3px;"><Edit /></el-icon>
+                编辑
+              </el-button>
+              <el-button type="danger" size="small" @click="handleDelete(scope.row)">
+                <el-icon style="font-size: 13px; margin-right: 3px;"><Delete /></el-icon>
+                删除
+              </el-button>
             </template>
           </el-table-column>
           </el-table>
@@ -223,6 +229,7 @@ const onSubmit = () => {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  padding-top: 5px;
   .dep-header{
     box-sizing: border-box;
     display:flex;
@@ -245,6 +252,7 @@ const onSubmit = () => {
       }
       .pager {
         margin-top: 0px;
+        margin-left: 5px;
       }
     }
   }
