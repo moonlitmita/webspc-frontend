@@ -11,7 +11,6 @@
     </div>
     <el-container class="r-container">
       <CommonHeader class="common-header"></CommonHeader>
-      <CommonTag class="common-tag"></CommonTag>
       <el-main class="right-main">
         <router-view></router-view>
       </el-main>
@@ -22,7 +21,6 @@
 import { useRoute } from 'vue-router';
 import CommonAside from '../components/common/CommonAside.vue';
 import CommonHeader from '../components/common/CommonHeader.vue';
-import CommonTag from '../components/common/CommonTag.vue';
 
 const router = useRoute()
 const currentRoute = router.meta

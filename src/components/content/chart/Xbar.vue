@@ -52,7 +52,6 @@ const renderChart = () => {
     mode: 'lines+markers',
     name: 'Data',
     showlegend: false,
-    // hoverinfo: 'all',
     hoverinfo: 'text',
     hovertemplate: '<b>Date:</b> %{customdata}<br><b>X:</b> %{x}<br><b>Y:</b> %{y}<extra></extra>',
     line: {

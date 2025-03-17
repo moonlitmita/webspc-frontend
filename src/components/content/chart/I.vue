@@ -50,7 +50,8 @@ const renderChart = () => {
     mode: 'lines+markers',
     name: 'Data',
     showlegend: false,
-    hoverinfo: 'all',
+    hoverinfo: 'text',
+    hovertemplate: '<b>Date:</b> %{customdata}<br><b>X:</b> %{x}<br><b>Y:</b> %{y}<extra></extra>',
     line: {
         color: 'blue',
         width: 2
@@ -59,7 +60,8 @@ const renderChart = () => {
         color: 'blue',
         size: 8,
         symbol: 'circle'
-    }
+    },
+    customdata: lineStore.date
   } as Plotly.Data
   let xBarUCLTrace = {
     x: lineStore.xData,

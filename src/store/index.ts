@@ -60,10 +60,6 @@ export const useMainStore = defineStore('main', {
         result==-1? this.tabsList.push(val): ''
       }
     },
-    closeTab(val:Tab) {
-      let res = this.tabsList.findIndex(item=> item.name===val.name)
-      this.tabsList.splice(res,1)
-    },
     persistMenu(val:Array<Tab>) {
       this.menu = val
     },

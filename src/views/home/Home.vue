@@ -104,6 +104,9 @@ setData()
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  .info {
+    padding-top: 5px;
+  }
   :deep(.el-tabs__header) {
     margin: 0;
   }

@@ -10,7 +10,7 @@
       <el-button size="small"
         @click="handleCollapse">
         <el-icon :size="20">
-          <Menu />
+          <Expand />
         </el-icon>
       </el-button>
       <el-breadcrumb separator="/" class="bread">
