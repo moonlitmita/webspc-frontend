@@ -34,7 +34,7 @@ const envConfig: EnvConfigMap = {
     mockApi : ''
   },
   production: {
-    baseApi: 'https://ssl.webspc.com/backend',
+    baseApi: 'https://webspc.top/backend',
     mockApi : ''
   }
 }
