@@ -41,7 +41,26 @@
         </el-form-item>
       </el-form>
     </el-card>
-</div>
+    <div class="footer-info">
+      <div>作者: valleyfo</div>
+      <div>技术支持: 
+        <div>Email: wynmamtf@163.com</div>
+        <div>QQ: 271989251</div>
+        <div>Weixin: valleyfo</div>
+      </div>
+      <div>
+        <a href="https://gitee.com/valleyfo/webspc-frontend" target="_blank" rel="noopener">
+          WebSPC前端开源地址
+        </a>
+      </div>
+      <div>
+        <a href="https://gitee.com/valleyfo/webspc-backend" target="_blank" rel="noopener">
+          WebSPC后端开源地址
+        </a>
+      </div>
+      <div>版本: v1.0.1</div>
+    </div>
+  </div>
 </template>
 <script lang="ts" setup>
 import { computed, reactive } from 'vue'
@@ -107,6 +126,32 @@ const login = async()=>{
     .login-button {
       width: 100%;
     }
+  }
+    /* 右下角三行信息样式 */
+  .footer-info {
+    position: absolute;
+    right: 20px;
+    bottom: 25px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: left;
+    line-height: 1.6;
+
+    a {
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      display: block;
+      transition: color 0.2s;
+      &:hover {
+        color: #fff;
+        text-decoration: underline;
+      }
+    }
+
+    /* 如需深色背景可取消下面两行注释 */
+    // background: rgba(0, 0, 0, 0.2);
+    // padding: 5px 8px;
+    // border-radius: 4px;
   }
 }
 </style>

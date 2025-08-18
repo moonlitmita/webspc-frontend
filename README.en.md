@@ -1,29 +1,94 @@
-WebSPC/webspc-frontend
+# WebSPC/webspc-frontend
 
-Project Introduction
-WebSPC is a web implementation of SPC (Statistical Process Control), developed using a front-end and back-end separation architecture. 
-It is open-source and free.
+# Project Introduction
 
-Project Architecture
-Front-end:
+SPC (Statistical Process Control) is widely used in production-quality management to monitor and control process variation, 
+
+and to provide early warnings of abnormal conditions.
+
+WebSPC is a web-based implementation of SPC. It adopts a front-end / back-end separation architecture and is free & open source.
+
+
+# Project Architecture
+
+## Front-end:
+
 Framework: Vue 3 + Vite + Pinia
+
 UI: Element-Plus
+
 Charting Library: Plotly.js
+
 Language: TypeScript
 
-Preview:
-![](src/assets/images/preview_1.png)
-![](src/assets/images/preview_2.png)
+# 1. How-to Videos
 
+[1.1 WebSPC User Guide](https://www.bilibili.com/video/BV1h1XRYLEUt/?spm_id_from=333.1387.collection.video_card.click&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 
-The author is not an IT professional. From learning how to open the command-line window to front-end development, then back-end development, and finally deploying projects using Kubernetes, everything was self-taught. There may be many shortcomings in the project. Regardless, I hope it can be helpful to you, and I hope you will give it your star (little star). I also hope to receive your feedback to improve the project.
+[1.2 WebSPC Add-on: Automatic Data Collection](https://www.bilibili.com/video/BV1ANQbY9EpH?spm_id_from=333.788.recommend_more_video.1&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 
-Special Thanks:
-The front-end part of this mini-program was successfully developed after learning from the tutorials of front-end experts Allen and Jason. Therefore, some code snippets in this program are derived from their tutorials.
-The tutorial address of Allen and Jason is: https://space.bilibili.com/1643315584
-Special thanks to Allen, Jason, and their team for their selfless sharing!
+# 2. Development Environment Setup
 
-Feedback and Communication:
-QQ: 271989251
+## 2.1 Clone
+git clone https://gitee.com/valleyfo/webspc-frontend.git
+
+## 2.2 Install Dependencies
+npm install
+
+## 2.3 Run Dev Server
+npm run dev
+
+## 2.4 Open in Browser
+Ctrl + click the local link in the terminal to open the login page
+
+# 3. Production Deployment
+
+Videos
+
+[3.1 WebSPC Deployment Part 1](https://www.bilibili.com/video/BV11RQAYWE82/?spm_id_from=333.1387.collection.video_card.click&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
+
+[3.2 WebSPC Deployment Part 2](https://www.bilibili.com/video/BV1EmQwYgEJt/?spm_id_from=333.1387.collection.video_card.click&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
+
+Supplement:Build Front-end
+
+set MODE=production
+
+npm run build
+
+# 3.3 Preview
+
+<img src="src/assets/images/preview_1.png" width="500" alt="Project Preview">
+
+<img src="src/assets/images/preview_2.png" width="500" alt="Project Preview">
+
+# 3.4 Special Thanks
+
+The front-end of this mini-program was developed after studying the tutorials of Allen & Jason.
+
+Some code snippets originate from their courses.
+
+Tutorial channel: https://space.bilibili.com/1643315584
+
+Many thanks to Allen & Jason and their team for the selfless sharing!
+
+# 4. Live Demo
+
+URL: https://webspc.top
+
+Username: admin
+
+Password: Contact the author after sponsoring—if the project helps you, buy the author a coffee!
+
+Scan the QR code below with Wexin to donate:
+
+<img src="src/assets/images/donate.png" width="200" alt="Wexin Donation QR">
+
+# 5. Technical Support
+
+Author: valleyfo
+
 Email: wynmamtf@163.com
 
+QQ: 271989251
+
+Wexin: valleyfo
