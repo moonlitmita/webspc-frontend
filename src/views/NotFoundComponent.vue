@@ -20,4 +20,5 @@ onMounted(()=> {
   const redirect = route.query.redirect || '/home'
   router.push({name: 'login', query: {redirect}})
 })
+
 </script>

@@ -4,7 +4,7 @@
    See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
 */
 
-import request from './request'
+import { request } from './request'
 import type { AxiosResponse } from 'axios';
 
 export interface Tab {
@@ -20,7 +20,7 @@ export interface Tab {
 export interface Data {
   id: string
   project_id: string
-  samples: string
+  samples: number[]
   add_date: string
 }
 
@@ -47,6 +47,7 @@ export interface Process {
   dep: string
   process: string
 }
+
 export interface Project {
   id : string
   dep: string
@@ -68,192 +69,215 @@ export interface MenuResponse {
   token: string
   message: string
 }
+
 export interface DataResponse {
-  list?: Array<Data>
-  all?: Array<Data>
-  total?: number | null
-  message: string
-  testName: string
-  pValue: string
-  varianceBetween: string
-  varianceWithin: string
+  code: string
+  data: {
+    list?: Array<Data> | null
+    all?: Array<Data> | null
+    total?: number | null
+    message: string
+    test_name: string
+    p_value: string
+    variance_between: string | null
+    variance_within: string | null
+  }
 }
 
 export interface UserResponse {
-  count: number | null
-  list: Array<User>
+  code: string
+  data: {
+    total: number | null
+    list: Array<User>
+    message: string
+  }
 }
 
 export interface DepResponse {
-  count: number | null
-  list: Array<Dep>
+  code: string
+  data: {
+    total?: number | null
+    list?: Array<Dep>
+    all?: Array<Dep>
+    message: string
+  }
 }
 
 export interface ProcessResponse {
-  count: number | null
-  list: Array<Process>
+  code: string
+  data: {
+    total?: number | null
+    list?: Array<Process>
+    all?: Array<Process>
+    message: string
+  }
 }
 
 export interface ProjectResponse {
-  count: number | null
-  list: Array<Project>
+  code: string
+  data: {
+    total?: number | null
+    list?: Array<Project>
+    all?: Array<Project>
+    message: string
+  }
 }
 
 export default {
-  getHomeData(params: any): Promise<AxiosResponse<DataResponse>> {
-    return request({
+  getHomeData(params: any) {
+    return request<DataResponse>({
       url: '/spc/data',
       method: 'get',
       mock: false,
       data: params
     })
   },
-  addHomeData(params:any): Promise<AxiosResponse<DataResponse>> {
-    return request({
+  addHomeData(params:any){
+    return request<DataResponse>({
       url: '/spc/data',
       method:'post',
       mock: false,
       data: params,
     })
   },
-  editHomeData(params:any): Promise<AxiosResponse<DataResponse>> {
-    return request({
+  editHomeData(params:any){
+    return request<DataResponse>({
       url: 'spc/data',
       method: 'put',
       mock: false,
       data:params
     })
   },
-  deleteHomeData(params:any): Promise<AxiosResponse<DataResponse>> {
-    return request({
+  deleteHomeData(params:any) {
+    return request<DataResponse>({
       url: '/spc/data',
       method: 'delete',
       mock: false,
       data:params
     })
   },
-  getUserData(params: any): Promise<AxiosResponse<UserResponse>>{
-    return request({
+  getUserData(params: any) {
+    return request<UserResponse>({
     url: '/auth/user',
     method:'get',
     mock: false,
     data: params
     })
   },
-  addUser(params:any): Promise<AxiosResponse<UserResponse>> {
-    return request({
+  addUser(params:any) {
+    return request<UserResponse>({
       url: '/auth/user',
       method:'post',
       mock: false,
       data:params
     })
   },
-  editUser(params:any): Promise<AxiosResponse<UserResponse>> {
-    return request({
+  editUser(params:any) {
+    return request<UserResponse>({
       url: '/auth/user',
       method: 'put',
       mock: false,
       data:params
     })
   },
-  deleteUser(params:any): Promise<AxiosResponse<UserResponse>> {
-    return request({
+  deleteUser(params:any) {
+    return request<UserResponse>({
       url: '/auth/user',
       method: 'delete',
       mock: false,
       data:params
     })
   },
-  getDepData(params: any): Promise<AxiosResponse<DepResponse>> {
-    return request({
+  getDepData(params: any) {
+    return request<DepResponse>({
       url: '/spc/dep',
       method:'get',
       mock: false,
       data:params
     })
   },
-  addDep(params: any): Promise<AxiosResponse<DepResponse>> {
-    return request({
+  addDep(params: any) {
+    return request<DepResponse>({
       url: '/spc/dep',
       method:'post',
       mock: false,
       data:params
     })
   },
-  editDep(params: any): Promise<AxiosResponse<DepResponse>> {
-    return request({
+  editDep(params: any) {
+    return request<DepResponse>({
       url: '/spc/dep',
       method:'put',
       mock: false,
       data:params
     })
   },
-  deleteDep(params: any): Promise<AxiosResponse<DepResponse>> {
-    return request({
+  deleteDep(params: any) {
+    return request<DepResponse>({
       url: '/spc/dep',
       method:'delete',
       mock: false,
       data:params
     })
   },
-  getProcessData(params: any): Promise<AxiosResponse<ProcessResponse>> {
-    return request({
+  getProcessData(params: any) {
+    return request<ProcessResponse>({
     url: '/spc/process',
     method: 'get',
     mock: false,
     data:params
     })
   },
-  addProcess(params: any): Promise<AxiosResponse<ProcessResponse>> {
-    return request({
+  addProcess(params: any) {
+    return request<ProcessResponse>({
     url: '/spc/process',
     method:'post',
     mock: false,
     data:params
     })
   },
-  editProcess(params: any): Promise<AxiosResponse<ProcessResponse>> {
-    return request({
+  editProcess(params: any) {
+    return request<ProcessResponse>({
       url: '/spc/process',
       method: 'put',
       mock: false,
       data:params
     })
   },
-  deleteProcess(params: any): Promise<AxiosResponse<ProcessResponse>> {
-    return request({
+  deleteProcess(params: any) {
+    return request<ProcessResponse>({
       url: '/spc/process',
       method: 'delete',
       mock: false,
       data:params
     })
   },
-  getProjectData(params: any): Promise<AxiosResponse<ProjectResponse>> {
-    return request({
+  getProjectData(params: any) {
+    return request<ProjectResponse>({
       url: '/spc/project',
       method:'get',
       mock: false,
       data:params
     })
   },
-  addProject(params: any): Promise<AxiosResponse<ProjectResponse>> {
-    return request({
+  addProject(params: any) {
+    return request<ProjectResponse>({
       url: '/spc/project',
       method:'post',
       mock: false,
       data:params
     })
   },
-  editProject(params: any): Promise<AxiosResponse<ProjectResponse>> {
-    return request({
+  editProject(params: any) {
+    return request<ProjectResponse>({
       url: '/spc/project',
       method: 'put',
       mock: false,
       data:params
     })
   },
-  deleteProject(params: any): Promise<AxiosResponse<ProjectResponse>> {
-    return request({
+  deleteProject(params: any) {
+    return request<ProjectResponse>({
     url: '/spc/project',
     method: 'delete',
     mock: false,

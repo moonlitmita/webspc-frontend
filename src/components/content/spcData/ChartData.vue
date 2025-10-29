@@ -112,7 +112,7 @@
 <script lang="ts" setup>
 import { onMounted, ref, reactive, nextTick, computed, watchEffect} from 'vue'
 import type { Ref } from 'vue'
-import type { Data } from '../../../api/api'
+import type { Data } from '../../../api/mainApi'
 import { ElMessageBox, ElMessage, ElForm, ElButton } from 'element-plus'
 import type { UploadInstance, UploadUserFile, UploadRawFile } from 'element-plus'
 import { useLineStore } from '../../../store/lineData'
@@ -140,42 +140,53 @@ const formItems = computed(() => {
 const showItem = computed(() => {
   return lineStore.dataCollectionType !== "自动采集"
 })
+
 function getFormRules(item: number) {
   return [
     { required: true, message: `数据N${item}是必填项` },
   ]
 }
+
 const getIndex = (index: number) => {
   return (lineStore.config.page - 1) * lineStore.config.pageSize + index + 1
 }
+
 const handleSizeChange = (val: number) => {
   lineStore.config.pageSize = val
   lineStore.config.page = 1
   lineStore.loadData(false)
 }
+
 const handleCurrentChange = (val: number) => {
   lineStore.config.page = val
   startDate.value = null
   endDate.value = null
   lineStore.loadData(false)
 }
+
 lineStore.loadData(false)
+
 onMounted(()=>{
   lineStore.loadData(false)
  })
+
 const filterByDateRange = () => {
   lineStore.loadData(false)
 }
+
 startDate.value = lineStore.config.startDate
 endDate.value = lineStore.config.endDate
+
 watchEffect(()=> {
   lineStore.config.startDate = startDate.value
   lineStore.config.endDate = endDate.value
 })
+
 const handleCancel = () => {
   dialogVisible.value=false
   chartDataForm.value?.resetFields()
 }
+
 const action = ref('add')
 const handleEdit = (row: Data) => {
   action.value='edit'
@@ -192,6 +203,7 @@ const handleEdit = (row: Data) => {
     }
   })
 }
+
 const handleDelete = (row: Data)=> {
   ElMessageBox.confirm(
     '你确定要删除此数据吗？',
@@ -217,10 +229,12 @@ const handleDelete = (row: Data)=> {
       // catch error
     })
 }
+
 const handleAdd = ()=> {
   action.value='add'
   dialogVisible.value=true
 }
+
 const beforeUpload = (file: File)=> {
 const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||  
   file.type === 'application/vnd.ms-excel'
@@ -236,14 +250,18 @@ const isLtMaxSize = file.size / 1024 / 1024 < maxSizeMB
   }
   return true
 }
+
 const handleSuccess = ()=> {
   ElMessage.success('文件上传成功！')
 }
+
 const handleError = ()=> {
   ElMessage.error('文件上传失败！')
 }
+
 const handleFileChange = (uploadFile: File, uploadFiles: any)=> {
 }
+
 const uploadFile = ()=> {
   try {
     let formData = new FormData()
@@ -257,10 +275,10 @@ const uploadFile = ()=> {
     uploadRef.value!.clearFiles()
   } catch (error) {
     // handleError()
-    // ElMessage.error(`请求出错: ${error}`)
-    console.error('请求失败', error)
+    ElMessage.error(`请求出错: ${error}`)
   }
 }
+
 const handleClose = (done:()=>void) => {
   ElMessageBox.confirm(
     '你确定要关闭此对话框吗？',
@@ -278,6 +296,7 @@ const handleClose = (done:()=>void) => {
       // catch error
     })
 }
+
 const formChartData = reactive({}) as formChartData
 function generateFormChartData<T extends number>(sampleSize: T) {
   formChartData.dataType = "single"
@@ -288,6 +307,7 @@ function generateFormChartData<T extends number>(sampleSize: T) {
     formChartData[`n${i}`] = ""
   }
 }
+
 generateFormChartData(sampleSize)
 const onSubmit = () => {
   chartDataForm.value?.validate((valid: Boolean)=>{
@@ -318,6 +338,7 @@ const onSubmit = () => {
     }
   })
 }
+
 </script>
 <style lang='less' scoped>
 .data-container {

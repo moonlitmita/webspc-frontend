@@ -16,6 +16,7 @@ interface D4TableEntry {
   n: number;
   D4: number;
 }
+
 const d2Table: D2TableEntry[] = [
   { n: 2, d2: 1.128 },
   { n: 3, d2: 1.693 },
@@ -54,6 +55,7 @@ const tableD3: D3TableEntry[] = [
   { n: 24, D3: 0.451 },
   { n: 25, D3: 0.459 },
 ]
+
 const tableD4: D4TableEntry[] = [
   { n: 2, D4: 3.267 },
   { n: 3, D4: 2.574 },
@@ -80,6 +82,7 @@ const tableD4: D4TableEntry[] = [
   { n: 24, D4: 1.548 },
   { n: 25, D4: 1.541 },
 ]
+
 export function getD2(sampleSize: number): number {
   const d2Value = d2Table.find((entry) => entry.n === sampleSize)?.d2;
   if (d2Value === undefined) {

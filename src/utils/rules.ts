@@ -8,7 +8,7 @@ export function isOutsideControlLimits(data: number[], upperLimit: number, lower
   let outsidePoints: { x: number, y: number, message: string }[] = []
   for(let i = 0; i < data.length; i++) {
     if(data[i]>upperLimit || data[i] < lowerLimit) {
-      outsidePoints.push({x: i+1,y: data[i], message: "异常点： 超出控制限(准则1)"})
+      outsidePoints.push({x: i+1,y: data[i], message: "异常点, 准则1: 点超控制限"})
     }
   }
   return {
@@ -23,10 +23,10 @@ export function isConsecutivePointsSameSide(data: number[],mean: number): { same
   for (let i=0; i < data.length; i++) {
     if (i<data.length&&(data[i] - mean) * (data[i+1] - mean) > 0) {
       count++;
-      sameSidePoints.push({ x: i+1, y: data[i], message:"异常点:连续9点位于中心线同一侧(准则2)" })
+      sameSidePoints.push({ x: i+1, y: data[i], message:"异常点, 准则2: 连续9点落在中心线同一侧" })
     } else {
       if(count >=9 ){
-        sameSidePoints.push({ x: i+1, y: data[i], message:"异常点:连续9点位于中心线同一侧(准则2)" })
+        sameSidePoints.push({ x: i+1, y: data[i], message:"异常点, 准则2: 连续9点落在中心线同一侧" })
         segments.push([...sameSidePoints])
       }
       count = 1
@@ -54,10 +54,10 @@ export function isConsecutiveIncreasingOrDecreasingPoints(data: number[]): { inc
     }
     if ((diff > 0 && isIncreasing) || (diff < 0 && !isIncreasing)) {
       count++;
-      consecutivePoints.push({ x: i+1, y: data[i], message:"异常点:连续6点递增或递减(准则3)" })
+      consecutivePoints.push({ x: i+1, y: data[i], message:"异常点, 准则3: 连续6点递增或递减" })
     } else {
       if (count >= 6) {
-        consecutivePoints.push({ x: i+1, y: data[i], message:"异常点:连续6点递增或递减(准则3)" })
+        consecutivePoints.push({ x: i+1, y: data[i], message:"异常点, 准则3: 连续6点递增或递减" })
         segments.push([...consecutivePoints])
       }
       count = 1
@@ -77,11 +77,11 @@ export function isAlternatingPoints(data: number[]): { alternating: boolean, seg
   for (let i = 0; i < data.length; i++) {
     if ((data[i+1] - data[i])*(data[i+2] - data[i+1]) < 0) {
       count++;
-      alternatingPoints.push({ x: i+1, y: data[i], message:"异常点:连续14点中相邻点升降交错(准则4)" })
+      alternatingPoints.push({ x: i+1, y: data[i], message:"异常点, 准则4: 连续14点中相邻点升降交错" })
     } else {
       if (count >= 14) {
-        alternatingPoints.push({ x: i+1, y: data[i], message:"异常点:连续14点中相邻点升降交错(准则4)" })
-        alternatingPoints.push({ x: i+2, y: data[i+1], message:"异常点:连续14点中相邻点升降交错(准则4)" })
+        alternatingPoints.push({ x: i+1, y: data[i], message:"异常点, 准则4: 连续14点中相邻点升降交错" })
+        alternatingPoints.push({ x: i+2, y: data[i+1], message:"异常点, 准则4: 连续14点中相邻点升降交错" })
         segments.push([...alternatingPoints])
       }
       count = 2;
@@ -103,7 +103,7 @@ export function isOutsideControlZoneB(data: number[],mean: number, sigma: number
     const mappedSubset = subset.map((num, index) => ({
       x: i + index + 1,
       y: num,
-      message: "异常点:连续3点中有2点落在中心线同一侧B区之外(准则5)"
+      message: "异常点, 准则5: 连续3点中有2点落在中心线同一侧的B区之外"
     })).filter(item=> condition(item.y))
     if (mappedSubset.length===3) {
       segments.push(...mappedSubset)
@@ -136,7 +136,7 @@ export function isOutsideControlZoneC(data: number[],mean: number, sigma: number
     const mappedSubset = subset.map((num, index) => ({
       x: i + index + 1,
       y: num,
-      message: "异常点:连续5点中有4点落在中心线同一侧的C区之外(准则6)"
+      message: "异常点, 准则6: 连续5点中有4点落在中心线同一侧的C区之外"
     })).filter(item=> condition(item.y))
     const signs: string[] =  mappedSubset.map(item => {
       if (condition_2(item.y)> 0) {
@@ -181,7 +181,7 @@ export function isInsideControlZoneC(data: number[], mean: number, sigma: number
   for (let i = 0; i < data.length; i++) {
     if (condition(data[i])) {
       count++;
-      consecutivePoints.push ({x: i+1, y: data[i], message: "异常点:连续15点落在C区之内(准则7)" })
+      consecutivePoints.push ({x: i+1, y: data[i], message: "异常点, 准则7: 连续15点落在C区之内" })
     } else {
       if(count>=15) {
         segments.push(...consecutivePoints)
@@ -205,7 +205,7 @@ export function isOutsideControlZoneCandBothSides(data: number[], mean: number, 
     const mappedSubset = subset.map((num, index) => ({
       x: i + index + 1,
       y: num,
-      message: "异常点:连续8点落在中心线两侧,但无1点在C区之内(准则8)"
+      message: "异常点, 准则8: 连续8点落在中心线两侧,但无1点在C区之内"
     })).filter(item=> condition(item.y))
     for(let j=0; j<subset.length; j++) {
       if((subset[j] - mean)*(subset[j+1] - mean) < 0 && mappedSubset.length===8) {

@@ -8,6 +8,11 @@ and to provide early warnings of abnormal conditions.
 
 WebSPC is a web-based implementation of SPC. It adopts a front-end / back-end separation architecture and is free & open source.
 
+Open-source repository:
+
+Front-end business code address: https://gitee.com/valleyfo/webspc-frontend
+
+General back-end business code address: https://gitee.com/valleyfo/webspc-backend
 
 # Project Architecture
 
@@ -77,7 +82,9 @@ URL: https://webspc.top
 
 Username: admin
 
-Password: Contact the author after sponsoring—if the project helps you, buy the author a coffee!
+Password: Contact the author
+
+If this project has been helpful to you, why not buy the author a cup of coffee?
 
 Scan the QR code below with Wexin to donate:
 
@@ -85,10 +92,17 @@ Scan the QR code below with Wexin to donate:
 
 # 5. Technical Support
 
-Author: valleyfo
+Author: Yu Wang
 
 Email: wynmamtf@163.com
 
 QQ: 271989251
 
 Wexin: valleyfo
+
+Note: Technical support includes but is not limited to:
+Custom business development
+Project deployment
+Software usage explanations
+Code explanations
+SPC theory training

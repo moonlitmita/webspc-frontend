@@ -6,6 +6,13 @@
 
 ## WebSPC是SPC(统计过程控制)的web实现，采用前后端分离的方式，免费开源。
 
+## 开源地址：
+   
+   前端业务代码地址：https://gitee.com/valleyfo/webspc-frontend
+
+   常规后端业务代码地址：https://gitee.com/valleyfo/webspc-backend
+   
+
 # 项目架构
 
 ## 前端：
@@ -71,7 +78,9 @@ Allen，Jason老师的前端教程地址是：https://space.bilibili.com/1643315
 
 用户名：admin
 
-登录密码：打赏之后联系作者获取，如果该项目对你有所帮助，请作者喝杯咖啡吧！
+登录密码：联系作者获取
+
+如果项目对你有所帮助，请作者喝杯咖啡吧！
 
 微信扫一扫支付
 
@@ -86,6 +95,11 @@ Email: wynmamtf@163.com
 QQ: 271989251
 
 Weixin: valleyfo
+
+备注：技术支持包括但不限于
+    定制业务开发
+    项目部署
+    程序使用讲解，代码讲解，SPC理论培训。
 
 
 

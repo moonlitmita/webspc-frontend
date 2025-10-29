@@ -5,13 +5,13 @@
 */
 
 import { defineStore } from "pinia";
-import api from '../api/api'
-import type {Process,ProcessResponse} from '../api/api'
-import type { AxiosResponse } from "axios";
+import api from '../api/mainApi'
+import type { ProcessResponse } from '../api/mainApi'
+
 
 interface ProcessConfig {
-  processList_pagination: Array<Process>
-  processList_all: Array<Process>
+  processList_pagination: ProcessResponse['data']['list']
+  processList_all: ProcessResponse['data']['all']
   config: {
     total: number | null
     page: number
@@ -35,12 +35,12 @@ export const useProcessStore = defineStore('process', {
   getters: {},
   actions: {
     async getProcessData(getAll: Boolean):Promise<void> { 
-      let res: AxiosResponse<ProcessResponse> = await api.getProcessData({...this.config, getAll: getAll})
+      let res: ProcessResponse = await api.getProcessData({...this.config, getAll: getAll})
       if(getAll) {
-        this.processList_all = res.all
+        this.processList_all = res.data.all || []
       } else {
-        this.config.total = res.total
-        this.processList_pagination= res.list
+        this.config.total = res.data.total ?? null
+        this.processList_pagination= res.data.list || []
       }
     },
     async addProcess(val: any) {

@@ -5,17 +5,16 @@
 */
 
 import { defineStore } from "pinia";
-import api from '../api/api'
-import type { User, UserResponse } from '../api/api'
-import type { AxiosResponse } from 'axios'
+import api from '../api/mainApi'
+import type { User, UserResponse } from '../api/mainApi'
 
 interface UserConfig {
-  userList: Array<User>
+  userList: UserResponse['data']['list']
   config: {
-  total: number | null
-  page: number
-  pageSize: number
-  searchInfo: string
+    total: number | null
+    page: number
+    pageSize: number
+    searchInfo: string
   }
 }
 export const useUserStore = defineStore('user', {
@@ -33,15 +32,15 @@ export const useUserStore = defineStore('user', {
   getters: {},
   actions: {
     async getUserData(): Promise<void> { 
-      let res: AxiosResponse<UserResponse> = await api.getUserData(this.config)
-      this.userList = res.list.map((item: User)=>{
+      let res: UserResponse = await api.getUserData(this.config)
+      this.userList = res.data.list.map((item: User)=>{
         item.gender = item.gender === "0" ? '女' : '男'
         item.is_super_user = item.is_super_user === "True" ? "是" : "否"
         item.is_staff = item.is_staff === "True" ? "是" : "否"
         item.is_active = item.is_active === "True" ? "是" : "否"
         return item
       })
-    this.config.total = res.total
+    this.config.total = res.data.total ?? null
     },
     async addUser(val: any) {
       await api.addUser(val)

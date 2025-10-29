@@ -8,15 +8,26 @@
   <el-header>
     <div class="l-content">
       <el-button size="small"
-        @click="handleCollapse">
+        type="primary"
+        @click="handleCollapse"
+        >
         <el-icon :size="20">
           <Expand />
         </el-icon>
       </el-button>
       <el-breadcrumb separator="/" class="bread">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="current.path" v-if="current">{{ current.label }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="mainStore.currentMenu.path" v-if="mainStore.currentMenu">{{ mainStore.currentMenu.label }}</el-breadcrumb-item>
       </el-breadcrumb>
+      <!-- 新增 AI 按钮 -->
+      <div class="ai-content">
+        <el-button type="primary" @click="handleToggleAi"size="small">
+          AI助手
+          <el-icon size="20" class="ai-btn">
+            <ChatDotSquare />
+          </el-icon>
+        </el-button>
+      </div>
     </div>
     <div class="r-content">
       <el-dropdown :hide-on-click="false">
@@ -34,26 +45,29 @@
 </template>
 <script lang="ts" setup>
 import { useMainStore } from '../../store';
-import { storeToRefs } from 'pinia';
-import { computed } from '@vue/reactivity';
 import { useRouter } from 'vue-router'
 
 const mainStore = useMainStore()
+
 const router = useRouter()
+
 const getImageSrc = (name:string) => {
   return new URL(`../../assets/images/${name}.png`, import.meta.url).href
 }
+
 const handleCollapse = () => {
   mainStore.updateIsCollapse()
 }
-const current = computed(()=>{
-  return mainStore.currentMenu
-})
+
+const handleToggleAi = () => {
+  mainStore.toggleAi()
+}
+
 let handleLogout = () => {
   mainStore.clearMenu()
   mainStore.clearToken()
   router.push({
-        name:'login'
+    name:'login'
   })
 }
 </script>
@@ -78,8 +92,12 @@ header {
   .el-button {
     margin-right: 15px;
   }
-  h3 {
-    color: #fff;
+  .ai-content {
+    margin-left: 20px;
+    align-items: center;
+    .ai-btn {
+      margin-left: 3px;
+    }
   }
 }
 .bread :deep(span){

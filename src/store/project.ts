@@ -5,18 +5,18 @@
 */
 
 import { defineStore } from "pinia";
-import api from '../api/api'
-import type {Project, ProjectResponse} from '../api/api'
-import type { AxiosResponse } from "axios";
+import api from '../api/mainApi'
+import type { ProjectResponse } from '../api/mainApi'
+
 
 interface ProjectConfig {
-  projectList: Array<Project>
-  all: Array<Project>
+  projectList: ProjectResponse['data']['list']
+  all: ProjectResponse['data']['all']
   config: {
-  total: number | null
-  page: number
-  pageSize: number
-  searchInfo: string
+    total: number | null
+    page: number
+    pageSize: number
+    searchInfo: string
   }
 }
 export const useProjectStore = defineStore('project', {
@@ -35,10 +35,10 @@ state: (): ProjectConfig => {
 getters: {},
 actions: {
   async getProjectData(): Promise<void> { 
-    let res: AxiosResponse<ProjectResponse> = await api.getProjectData(this.config)
-    this.config.total = res.total
-    this.projectList= res.list
-    this.all = res.all
+    let res: ProjectResponse = await api.getProjectData(this.config)
+    this.config.total = res.data.total ?? null
+    this.projectList= res.data.list || []
+    this.all = res.data.all || []
   },
   async addProject(val: any) {
     await api.addProject(val)

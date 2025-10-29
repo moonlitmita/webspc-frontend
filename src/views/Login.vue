@@ -42,7 +42,7 @@
       </el-form>
     </el-card>
     <div class="footer-info">
-      <div>作者: valleyfo</div>
+      <div>作者: 王宇</div>
       <div>技术支持: 
         <div>Email: wynmamtf@163.com</div>
         <div>QQ: 271989251</div>
@@ -55,18 +55,30 @@
       </div>
       <div>
         <a href="https://gitee.com/valleyfo/webspc-backend" target="_blank" rel="noopener">
-          WebSPC后端开源地址
+          WebSPC常规业务后端开源地址
         </a>
       </div>
       <div>版本: v1.0.1</div>
     </div>
+    <!-- 底部备案信息 -->
+    <!-- <div class="icp-footer">
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">
+        XICP备XXXXXXXXXX号
+      </a>
+      <span class="sep">|</span>
+      <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener">
+        X公网安备XXXXXXXXXXXXXX号
+      </a>
+    </div> -->
   </div>
 </template>
 <script lang="ts" setup>
 import { computed, reactive } from 'vue'
-import api from '../api/api'
-import type { MenuResponse } from '../api/api'
+import api from '../api/mainApi'
+import type { MenuResponse } from '../api/mainApi'
 import {useMainStore} from '../store/index'
+import { useProjectStore } from '../store/project'
+import { useLineStore } from '../store/lineData'
 import { useRouter ,useRoute} from 'vue-router'
 import type { AxiosResponse } from 'axios'
 import { ElForm } from 'element-plus'
@@ -91,10 +103,35 @@ const rules = {
 }
 const login = async()=>{
   const res: AxiosResponse<MenuResponse> = await api.getMenu(loginForm)
-  mainStore.persistMenu(res.menu)
-  mainStore.addRoutes(res.menu,router)
-  mainStore.setToken(res.token)
-  router.push(route.query.redirect as string || '/home')
+  mainStore.persistMenu(res.data.menu)
+  mainStore.addRoutes(res.data.menu,router)
+  mainStore.setToken(res.data.token)
+  
+  // 检查用户是否有项目数据
+  try {
+    // 获取项目数据
+    const projectStore = useProjectStore()
+    await projectStore.getProjectData()
+    
+    // 如果没有项目数据，跳转到项目页面
+    if (!projectStore.all || projectStore.all.length === 0) {
+      router.push('/project')
+      mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
+    } else {
+      // 如果有项目数据，检查lineStore中的cList
+      const lineStore = useLineStore()
+      // 如果cList为空，也跳转到项目页面
+      if (!lineStore.cList || lineStore.cList.length === 0) {
+        router.push('/project')
+        mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
+      } else {
+        router.push(route.query.redirect as string || '/home')
+      }
+    }
+  } catch (error) {
+    // 如果获取项目数据失败，默认跳转到项目页面
+    router.push('/project')
+  }
 }
 </script>
 <style lang="less" scoped>
@@ -152,6 +189,29 @@ const login = async()=>{
     // background: rgba(0, 0, 0, 0.2);
     // padding: 5px 8px;
     // border-radius: 4px;
+  }
+  .icp-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 8px 0;
+    background: rgba(0, 0, 0, 0.2);
+    font-size: 12px;
+    color: #fff;
+    text-align: center;
+    z-index: 1000;
+
+    a {
+      color: #fff;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+
+    .sep {
+      margin: 0 6px;
+    }
   }
 }
 </style>

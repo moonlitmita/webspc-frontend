@@ -71,15 +71,17 @@
       width="55%"
       align-center
       :before-close="handleClose"
+      class="my-dialog-full-width"
     >
-      <el-form :inline="true" 
+      <el-form :inline="false" 
         :model="state.formProject" 
         ref="projectForm"
-        :rules=state.rules>
-        <el-row>
+        :rules=state.rules
+        label-width="120px">
+        <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item label="部门名称" prop="dep">
-              <el-select v-model="state.formProject.dep" class="m-2" placeholder="请选择" size="large" @change="updateOptions">
+              <el-select v-model="state.formProject.dep" placeholder="请选择" size="large" @change="updateOptions" style="width: 100%;">
                 <el-option
                   v-for="item in depOptions"
                   :key="item.value"
@@ -91,7 +93,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="制程名称" prop="process">
-              <el-select v-model="state.formProject.process" class="m-2" placeholder="请选择" size="large">
+              <el-select v-model="state.formProject.process" class="m-2" placeholder="请选择" style="width: 100%;">
                 <el-option
                   v-for="item in filteredProcesses"
                   :key="item.value"
@@ -103,24 +105,24 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="产品名称" prop="product">
-              <el-input v-model="state.formProject.product" placeholder="请输入产品名称" />
+              <el-input v-model="state.formProject.product" placeholder="请输入产品名称" style="width: 100%;"/>
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>
+        <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item label="项目名称" prop="project">
-              <el-input v-model="state.formProject.project" placeholder="请输入项目名称" />
+              <el-input v-model="state.formProject.project" placeholder="请输入项目名称" style="width: 100%;"/>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="子组容量" prop="sampleSize">
-              <el-input v-model="state.formProject.sampleSize" placeholder="请输入子组容量" :disabled="isSampleSizeDisabled"/>
+              <el-input v-model="state.formProject.sampleSize" placeholder="请输入子组容量" :disabled="isSampleSizeDisabled" style="width: 100%;"/>
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="数据采集类型" prop="dataCollectionType">
-              <el-select v-model="state.formProject.dataCollectionType" class="m-2" placeholder="请选择" size="large" :disabled="isCollectionTypeDisabled">
+              <el-select v-model="state.formProject.dataCollectionType" class="m-2" placeholder="请选择" size="large" :disabled="isCollectionTypeDisabled" style="width: 100%;">
                 <el-option
                   v-for="item in dataCollectionTypeOptions"
                   :key="item.value"
@@ -131,10 +133,10 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>
+        <el-row :gutter="20">
           <el-col :span="8">
             <el-form-item label="控制图类型" prop="spcType1">
-              <el-select v-model="state.formProject.spcType1" class="m-2" placeholder="请选择" size="large">
+              <el-select v-model="state.formProject.spcType1" class="m-2" placeholder="请选择" size="large" style="width: 100%;">
                 <el-option
                   v-for="item in state.options"
                   :key="item.value"
@@ -146,7 +148,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="控制图类型" prop="spcType2">
-              <el-select v-model="state.formProject.spcType2" class="m-2" placeholder="请选择" size="large">
+              <el-select v-model="state.formProject.spcType2" class="m-2" placeholder="请选择" size="large" style="width: 100%;">
                 <el-option
                   v-for="item in state.options"
                   :key="item.value"
@@ -158,7 +160,7 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="控制图类型" prop="spcType3">
-              <el-select v-model="state.formProject.spcType3" class="m-2" placeholder="请选择" size="large">
+              <el-select v-model="state.formProject.spcType3" class="m-2" placeholder="请选择" size="large" style="width: 100%;">
                 <el-option
                   v-for="item in state.options"
                   :key="item.value"
@@ -169,15 +171,15 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="公差上限" prop="USL">
-              <el-input v-model="state.formProject.USL" placeholder="请输入公差上限" />
+              <el-input v-model="state.formProject.USL" placeholder="请输入公差上限" style="width: 100%;"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="公差下限" prop="LSL">
-              <el-input v-model="state.formProject.LSL" placeholder="请输入公差下限" />
+              <el-input v-model="state.formProject.LSL" placeholder="请输入公差下限" style="width: 100%;"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -209,7 +211,7 @@
 <script lang="ts" setup>
 import { onMounted,ref,reactive,nextTick, watch, watchEffect} from 'vue'
 import type { Ref } from 'vue'
-import type { Project }from '../../api/api'
+import type { Project }from '../../api/mainApi'
 import {ElMessageBox,ElMessage, ElForm } from 'element-plus'
 import type { FormRules } from 'element-plus'
 import { useProjectStore } from '../../store/project'
@@ -237,6 +239,7 @@ const selectedItems = [
   {value: '7', label: '准则7: 连续15点落在C区之内'},
   {value: '8', label: '准则8: 连续8点落在中心线两侧,但无1点在C区之内'}
 ]
+
 interface selectObject {
   value: string,
   label: string
@@ -255,27 +258,28 @@ type RuleForm = {
   USL: number
   LSL: number
 }
+
 const tableLabel = reactive(
   [   
     {
       prop: 'id',
       label: "项目ID",
-      width: '80'
+      width: '60'
     },
     {
       prop: "dep",
       label: "部门",
-      width: '80'
+      width: '60'
     },
     {
       prop: "process",
       label: "制程",
-      width: '80'
+      width: '60'
     },
     {   
       prop: "product",
       label: "产品",
-      width: '90'
+      width: '80'
     },
     {
       prop: "project",
@@ -285,45 +289,46 @@ const tableLabel = reactive(
     {
       prop: "spcType1",
       label: "类型1",
-      width: '80'
+      width: '40'
     },
     {
       prop: "spcType2",
       label: "类型2",
-      width: '80'
+      width: '40'
     },
     {
       prop: "spcType3",
       label: "类型3",
-      width: '80'
+      width: '40'
     },
     {
       prop: "sampleSize",
       label: "子组容量",
-      width: '60'
+      width: '40'
     },
     {
       prop: "USL",
       label: "公差上限",
-      width: '60'
+      width: '40'
     },
     {
       prop: "LSL",
       label: "公差下限",
-      width: '60'
+      width: '40'
     },
     {
       prop: "add_date",
       label: "创建时间",
-      width: "170"
+      width: "110"
     },
     {
       prop: "upd_date",
       label: "更新时间",
-      width: "170"
+      width: "110"
     }
   ]
 )
+
 const dataCollectionTypeOptions = [
   {
     value: '手动采集',
@@ -334,6 +339,7 @@ const dataCollectionTypeOptions = [
     label: '自动采集'
   }
 ]
+
 const state = reactive({
   options:[
     {
@@ -393,24 +399,29 @@ const state = reactive({
       {required:true,message:'子组容量是必填项'},
       { validator: validateN, trigger: 'blur' }
     ],
+    dataCollectionType:[{required:true,message:'数据采集类型是必填项'}],
     USL:[{required:true,message:'控制上限是必填项'}],
     LSL:[{required:true,message:'控制下限是必填项'}],
   }
 })
-const depOptions = reactive(depStore.depList_all.map((item)=>({value: item.dep, label: item.dep})))
+
+const depOptions = reactive((depStore.depList_all || []).map((item)=>({value: item.dep, label: item.dep})))
 const filteredProcesses = ref<selectObject[]>([])
 const depValue = ref(state.formProject.dep)
+
 const updateOptions = ()=> {
-  filteredProcesses.value = processStore.processList_all.filter(process=> process.dep===state.formProject.dep).map(
+  filteredProcesses.value = (processStore.processList_all || []).filter(process=> process.dep===state.formProject.dep).map(
     item=> ({
       value: item.process,
       label: item.process
     })
   )  
 }
+
 watch(depValue, (newValue)=> {
   updateOptions()
 })
+
 function validateN(rule: any, value: any, callback: any) {
   if (/^\d+$/.test(value)) {
     const num = parseInt(value, 10);
@@ -431,18 +442,22 @@ function validateSpcType(rule: any, value: any, callback: any) {
     callback();
   }      
 }
+
 onMounted(()=>{
   depStore.getDepData(true)
   processStore.getProcessData(true)
   projectStore.getProjectData()
 })
+
 const changePage= (page: number) =>{
   projectStore.config.page=page
   projectStore.getProjectData()
 }
+
 const formInline = reactive({
   keyword: ""
 })
+
 formInline.keyword = projectStore.config.searchInfo
 watchEffect(()=> {
   projectStore.config.searchInfo = formInline.keyword
@@ -451,10 +466,12 @@ const handleSearch = ()=>{
   projectStore.config.searchInfo = formInline.keyword
   projectStore.getProjectData()
 }
+
 const handleCancel = () => {
   dialogVisible.value=false
   projectForm.value?.resetFields()
 }
+
 const action = ref('add')
 const handleJump = (row: Project) => {
   const spcTypeArr = [row.spcType1,row.spcType2,row.spcType3].filter((str: string)=>str !== "")
@@ -472,6 +489,7 @@ const handleJump = (row: Project) => {
     path: '/home'
   })
 }
+
 const handleEdit = (row: Project) => {
   action.value = 'edit'
   dialogVisible.value = true
@@ -481,6 +499,7 @@ const handleEdit = (row: Project) => {
     Object.assign(state.formProject, row)
    })
 }
+
 const handleDelete = (row: Project)=> {
   ElMessageBox.confirm(
     '你确定要删除此项目吗？',
@@ -504,8 +523,10 @@ const handleDelete = (row: Project)=> {
    })
    .catch(() => {
      // catch error
+     ElMessage.error('删除失败')
    })
 }
+
 const handleAdd = ()=> {
   action.value='add'
   dialogVisible.value=true
@@ -513,6 +534,7 @@ const handleAdd = ()=> {
   isCollectionTypeDisabled.value = false
 
 }
+
 const handleClose = (done:()=>void) => {
   ElMessageBox.confirm(
     '你确定要关闭此对话框吗？',
@@ -530,6 +552,7 @@ const handleClose = (done:()=>void) => {
       // catch error
     })
 }
+
 const onSubmit = () => {
   projectForm.value?.validate((valid: Boolean)=>{
     if(valid) {

@@ -20,18 +20,21 @@ coverage
 # Editor directories and files
 .vscode/*
 .idea
+.crush
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.crush
 
 *.tsbuildinfo
 
-# 忽略QWEN.md
+# Ignore QWEN.md
 QWEN.md
 
-#忽略自动生成文件
+# 忽略自动生成文件
 auto-imports.d.ts
 components.d.ts
+
+
+

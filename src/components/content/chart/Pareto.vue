@@ -11,10 +11,12 @@ import { useLineStore } from '../../../store/lineData'
 
 const lineStore = useLineStore()
 const pareto = ref()
+
 type DataItem = {
   category: string;
   value: number;
 }
+
 const renderChart =()=> {
   let data: DataItem[] = [{category: '组间方差分量',value: Number(lineStore.varianceBetween)}, {category: '组内方差分量',value: Number(lineStore.varianceWithin)}]
   const sortedData = data.sort((a, b) => b.value - a.value)
@@ -46,13 +48,13 @@ const renderChart =()=> {
       yanchor:'middle',
     },
     xaxis: {
-      title: '类别'
+      title: '类别' as Partial<Plotly.Layout>
     },
     yaxis: {
-      title: '观测值'
+      title: '观测值' as Partial<Plotly.Layout>
     },
     yaxis2: {
-      title: '累积百分比(%)',
+      title: '累积百分比(%)' as Partial<Plotly.Layout>, 
       overlaying: 'y',
       side: 'right',
       showgrid: false,

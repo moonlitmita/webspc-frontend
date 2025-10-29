@@ -62,13 +62,13 @@
       width="45%"
       :before-close="handleClose"
     >
-      <el-form :inline="true" :model="formProcess" ref="processForm">
-        <el-row>
+      <el-form :inline="false" :model="formProcess" ref="processForm" label-width="120px">
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="部门名称" prop="dep" :rules="[
               {required:true,message:'部门名称是必填项'}
             ]">
-            <el-select v-model="formProcess.dep" class="m-2" placeholder="请选择" size="large">
+            <el-select v-model="formProcess.dep" placeholder="请选择" style="width: 100%;">
               <el-option
                 v-for="item in depOptions"
                 :key="item.value"
@@ -82,7 +82,7 @@
            <el-form-item label="制程名称" prop="process" :rules="[
              {required:true,message:'制程名称是必填项'}
             ]">
-             <el-input v-model="formProcess.process" placeholder="请输入制程名称" />
+             <el-input v-model="formProcess.process" placeholder="请输入制程名称" style="width: 100%;" />
            </el-form-item>
          </el-col>
         </el-row>
@@ -101,7 +101,7 @@
 <script lang="ts" setup>
 import { onMounted,ref,reactive,nextTick, watchEffect, computed} from 'vue';
 import type { Ref } from 'vue'
-import type { Process }from '../../api/api'
+import type { Process }from '../../api/mainApi'
 import {ElMessageBox,ElMessage,ElForm} from 'element-plus'
 import { useProcessStore } from '../../store/process'
 import { useDepStore } from '../../store/department'
@@ -141,21 +141,24 @@ const tableLabel = reactive(
     }
   ]
 )
+
 onMounted(()=>{
   depStore.getDepData(true)
   processStore.getProcessData(false)
 })
 const fixedOption = {value: '', label: '请选择'}
 const depOptions = computed(()=> {
-  return [fixedOption].concat(depStore.depList_all.map((item)=>({
+  return [fixedOption].concat((depStore.depList_all || []).map((item)=>({
     value: item.dep,
     label: item.dep
    })))
 })
+
 const changePage= (page: number) =>{
   processStore.config.page=page
   processStore.getProcessData(false)
 }
+
 const formInline = reactive({
   keyword: ""
 })
@@ -163,13 +166,16 @@ formInline.keyword = processStore.config.searchInfo
 watchEffect(()=> {
   processStore.config.searchInfo = formInline.keyword
 })
+
 const handleSearch = ()=>{
   processStore.getProcessData(false)
 }
+
 const handleCancel = () => {
   dialogVisible.value=false
   processForm.value?.resetFields()
 }
+
 const action = ref('add')
 const handleEdit = (row: Process) => {
   action.value='edit'
@@ -179,6 +185,7 @@ const handleEdit = (row: Process) => {
     Object.assign(formProcess,row)
   })
 }
+
 const handleDelete = (row: Process)=> {
   ElMessageBox.confirm(
     '你确定要删除此制程吗？',
@@ -202,12 +209,15 @@ const handleDelete = (row: Process)=> {
    })
    .catch(() => {
      // catch error
+     ElMessage.error('删除失败')
    })
 }
+
 const handleAdd = ()=> {
   action.value='add'
   dialogVisible.value=true
 }
+
 const handleClose = (done:()=>void) => {
   ElMessageBox.confirm(
     '你确定要关闭此对话框吗？',
@@ -225,6 +235,7 @@ const handleClose = (done:()=>void) => {
      // catch error
    })
 }
+
 const formProcess = reactive({
   dep: "",
   process: ''

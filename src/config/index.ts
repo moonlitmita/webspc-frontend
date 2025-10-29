@@ -7,6 +7,7 @@
 type EnvType = 'development' | 'test' | 'production'
 interface BaseConfig {
   baseApi: string
+  chatApi: string
   mockApi: string
 }
 interface DevelopmentConfig extends BaseConfig {
@@ -23,25 +24,31 @@ interface EnvConfigMap {
   test: TestConfig
   production: ProdConfig
 }
+
 const env = import.meta.env.MODE as EnvType || 'production'
 const envConfig: EnvConfigMap = {
   development: {
     baseApi: 'http://127.0.0.1:5000/backend',
+    chatApi: 'http://127.0.0.1:8000/ai',
     mockApi: ''
   },
   test: {
     baseApi: '',
+    chatApi: '',
     mockApi : ''
   },
   production: {
     baseApi: 'https://webspc.top/backend',
+    chatApi: 'https://webspc.top/ai',
     mockApi : ''
   }
 }
+
 export type AppConfig = {
   env: EnvType
   mock: Boolean
 } & BaseConfig
+
 export default {
   env,
   mock: true,
