@@ -32,7 +32,7 @@ coverage
 # Ignore QWEN.md
 QWEN.md
 
-# 忽略自动生成文件
+# Ignore自动生成文件
 auto-imports.d.ts
 components.d.ts
 
