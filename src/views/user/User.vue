@@ -1,3 +1,9 @@
+/* Copyright 2025-present Yu Wang. All Rights Reserved.
+
+   Distributed under MIT license.
+   See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
+*/
+
 <template>
   <div class="user-container">
     <div class="user-header">
@@ -56,30 +62,32 @@
       width="50%"
       :before-close="handleClose"
     >
-      <el-form :inline="true" :model="formUser" ref="userForm">
-        <el-row>
-          <el-col :span="9">
+      <el-form :inline="false" :model="formUser" ref="userForm" label-width="120px">
+        <el-row :gutter="20">
+          <el-col :span="12">
             <el-form-item label="真实姓名" prop="realname" :rules="[
               {required:true,message:'姓名是必填项'}
             ]">
               <el-input v-model="formUser.realname" placeholder="请输入真实姓名" />
             </el-form-item>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="12">
             <el-form-item label="性别" prop="gender" 
               :rules="[{required:true,message:'性别是必填项'}]"
             >
-              <el-select v-model="formUser.gender" placeholder="请选择性别">
+              <el-select v-model="formUser.gender" placeholder="请选择性别" style="width: 100%;">
                 <el-option label="男" value="1" />
                 <el-option label="女" value="0" />
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="9">
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
             <el-form-item label="部门" prop="dep"
               :rules="[{required: true,message:'部门是必填项'}]"
             >
-              <el-select v-model="formUser.dep" class="m-2" placeholder="请选择" size="large">
+              <el-select v-model="formUser.dep" class="m-2" placeholder="请选择" size="large" style="width: 100%;">
                 <el-option
                   v-for="item in depOptions"
                   :key="item.value"
@@ -89,8 +97,6 @@
               </el-select>
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="12">
             <el-form-item label="用户名" prop="username" :rules="[
               {required:true,message:'用户名是必填项'}]"
@@ -98,6 +104,8 @@
               <el-input v-model="formUser.username" placeholder="请输入用户名" />
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="密码" prop="password" 
               :rules="[{required:true,message:'密码是必填项'}]"
@@ -105,23 +113,23 @@
               <el-input v-model="formUser.password" placeholder="请输入密码" :disabled="isPasswordDisabled"/>
             </el-form-item>   
           </el-col>
-        </el-row>
-        <el-row>
           <el-col :span="12">
             <el-form-item label="超级管理员" prop="is_super_user"
               :rules="[{required:true,message:'超级管理员是必填项'}]"
             >
-              <el-select v-model="formUser.is_super_user" placeholder="请选择">
+              <el-select v-model="formUser.is_super_user" placeholder="请选择" style="width: 100%;">
                 <el-option label="是" value="1"/>
                 <el-option label="否" value="0"/>
               </el-select>
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="部门管理员" prop="is_staff"
               :rules="[{required:true,message:'部门管理员是必填项'}]"
             >
-              <el-select v-model="formUser.is_staff" placeholder="请选择">
+              <el-select v-model="formUser.is_staff" placeholder="请选择" style="width: 100%;">
                 <el-option label="是" value="1"/>
                 <el-option label="否" value="0"/>
               </el-select>
@@ -143,7 +151,7 @@
 <script lang="ts" setup>
 import { onMounted,ref,reactive,nextTick, computed, watchEffect } from 'vue'
 import type { Ref } from 'vue'
-import type { User } from '../../api/api'
+import type { User } from '../../api/mainApi'
 import {ElMessageBox,ElMessage,ElForm} from 'element-plus'
 import { useUserStore } from '../../store/user'
 import { useDepStore } from '../../store/department'
@@ -207,19 +215,17 @@ const tableLabel = reactive(
     }
   ]
 )
+
 onMounted(()=>{
   depStore.getDepData(true)
   userStore.getUserData()
 })
-const config = reactive({
-  total: 0,
-  page: 1,
-  name: ''
-})
+
 const changePage= (page: number) =>{
   userStore.config.page=page
   userStore.getUserData()
 }
+
 const formInline = reactive({
   keyword: ""
 })
@@ -228,9 +234,11 @@ const handleSearch = ()=>{
   userStore.config.searchInfo = formInline.keyword
   userStore.getUserData()
 }
+
 watchEffect(()=> {
   userStore.config.searchInfo = formInline.keyword
 })
+
 const handleCancel = () => {
   dialogVisible.value=false
   userForm.value?.resetFields()
@@ -246,6 +254,7 @@ const handleEdit = (row: User) => {
       is_active: String(row.is_active),is_staff: String(row.is_staff)})
   })
 }
+
 const handleDelete = (row: User)=> {
   ElMessageBox.confirm(
     '你确定要删除此用户吗？',
@@ -269,13 +278,16 @@ const handleDelete = (row: User)=> {
     })
     .catch(() => {
       // catch error
+      ElMessage.error('删除失败')
     })
 }
+
 const handleAdd = ()=> {
   action.value='add'
   dialogVisible.value=true
   isPasswordDisabled.value = false
 }
+
 const handleClose = (done:()=>void) => {
   ElMessageBox.confirm(
     '你确定要关闭此对话框吗？',
@@ -292,6 +304,7 @@ const handleClose = (done:()=>void) => {
     })
     .catch(() => {
       // catch error
+      ElMessage.error('关闭失败')
     })
 }
 const formUser = reactive({
@@ -304,13 +317,15 @@ const formUser = reactive({
   is_active: "",
   is_staff: ""
 })
+
 const fixedOption = {value: '', label: '请选择'}
 const depOptions = computed(()=> {
-  return [fixedOption].concat(depStore.depList_all.map((item)=>({
+  return [fixedOption].concat((depStore.depList_all || []).map((item)=>({
     value: item.dep,
     label: item.dep
   })))
 })
+
 const onSubmit = () => {
   userForm.value?.validate((valid: Boolean)=>{
     if(valid) {

@@ -31,7 +31,7 @@
 import { useRouter } from "vue-router";
 import {useMainStore} from "../../store"
 import { storeToRefs } from "pinia";
-import type { Tab } from "../../api/api"
+import type { Tab } from "../../api/mainApi"
 const mainStore = useMainStore()
 
 let {isCollapse: imCollapse} = storeToRefs(mainStore)
@@ -63,7 +63,4 @@ h3 {
   text-align: center;
   color: #fff;
 }
-
-
-
 </style>

@@ -21,12 +21,15 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
 import { useMainStore } from "./store";
-import api from  './api/api'
+import api from  './api/mainApi'
+import { useChatStore } from './store/chat';
 let restoreRoutes = async function() {
   const mainStore = useMainStore()
+  const chatStore = useChatStore()
   const res = await api.refreshMenu({})
-  mainStore.persistMenu(res.menu)
-  mainStore.addRoutes(res.menu,router)
+  mainStore.persistMenu(res.data.menu)
+  mainStore.addRoutes(res.data.menu,router)
+  chatStore.getSessionHistory()
 } 
 async function init() {
   try {

@@ -19,7 +19,18 @@ const routes:Array<RouteRecordRaw> = [
     component: () => import('../views/Main.vue'),
     meta: { requiresAuth: true },
     redirect: '/home',
-    children: []
+    children: [
+      {
+        path: '/home',
+        name: 'home',
+        component: () => import('../views/home/Home.vue')
+      },
+      {
+        path: '/project',
+        name: 'project',
+        component: () => import('../views/project/Project.vue')
+      }
+    ]
   },
   {
     path: '/:pathMatch(.*)*',
@@ -28,6 +39,7 @@ const routes:Array<RouteRecordRaw> = [
     children: []
   }
 ]
+
 const router = createRouter({
   // history: createWebHistory(),
   history: createWebHashHistory(),
@@ -51,4 +63,5 @@ router.beforeEach((to, from, next)=>{
       }
     }
 })
+
 export default router

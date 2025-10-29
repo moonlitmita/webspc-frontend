@@ -88,7 +88,7 @@
 import { onMounted,ref,reactive,nextTick, watchEffect} from 'vue';
 import type { Ref } from 'vue'
 import { useDepStore } from '../../store/department'
-import type { Dep } from '../../api/api.js'
+import type { Dep } from '../../api/mainApi.js'
 import {ElMessageBox,ElMessage,ElForm} from 'element-plus'
 
 const depStore = useDepStore()

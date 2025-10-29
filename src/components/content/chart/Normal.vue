@@ -23,6 +23,7 @@ const lowerLimit  = ref(0)
 const testName = ref('')
 const pValue: Ref<string | null> = ref(null)
 const tolerance = ref(0)
+
 const updateDynamicLimits= ()=> {
   yMeans.value = lineStore.xBarMean.yMeans
   mean.value = lineStore.xBarMean.xBarMean
@@ -67,6 +68,7 @@ function normalize(data: number[]): number[] {
   const maxVal = Math.max(...data);
   return data.map(val => val / maxVal);
 }
+
 const renderChart = ()=> {
   updateDynamicLimits()
   const binCount = 10
@@ -104,15 +106,15 @@ const renderChart = ()=> {
       yanchor: 'middle'
     },
     xaxis: {
-      title: '观测值',
+      title: '观测值' as Partial<Plotly.Layout>,
     },
     yaxis: {
-      title: '频数',
+      title: '频数' as Partial<Plotly.Layout>,
       range: [0, 30],
       side: 'left'
     },
     yaxis2: {
-      title: '概率密度',
+      title: '概率密度' as Partial<Plotly.Layout>,
       range: [0, 1], 
       overlaying: 'y',
       side: 'right',

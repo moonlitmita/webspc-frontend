@@ -8,20 +8,26 @@
   <div ref="mrChart"></div>
 </template>
 <script lang="ts" setup>
-import { onMounted, watch, ref} from 'vue';
+import { onMounted, watch, ref} from 'vue'
 import Plotly from 'plotly.js-dist-min'
-import { useLineStore } from '../../../store/lineData';
-import { useMainStore } from '../../../store';
+import { useLineStore } from '../../../store/lineData'
+import type { Outlier } from '../../../store/lineData'
+import { useMainStore } from '../../../store'
 import { isOutsideControlLimits, isConsecutivePointsSameSide, isConsecutiveIncreasingOrDecreasingPoints, isAlternatingPoints,
 } from '../../../utils/rules'
+import { getD4, getD3 } from '../../../utils/statistics'
 
 const lineStore = useLineStore()
 const mainStore = useMainStore()
 
+const upperLimit = ref(0)
+const lowerLimit = ref(0)
 const mrChart = ref()
+
 const renderChart = () => {
-  const upperLimit = lineStore.mrUCL
-  const lowerLimit = lineStore.mrLCL
+  upperLimit.value = getD4(2)*lineStore.mrData.mrBar
+  lowerLimit.value = getD3(2)*lineStore.mrData.mrBar
+  lineStore.updatemrCL(upperLimit.value, lowerLimit.value)
   const mean = lineStore.mrData.mrBar
   let Data1 = {
     type: 'scatter',
@@ -45,7 +51,7 @@ const renderChart = () => {
   } as Plotly.Data
   let mrUCLTrace = {
     x: lineStore.xData,
-    y: Array(lineStore.yData.length).fill(upperLimit),
+    y: Array(lineStore.yData.length).fill(upperLimit.value),
     mode: 'lines',
     name: 'MR UCL',
     line: {
@@ -54,9 +60,10 @@ const renderChart = () => {
       width: 1
     }
   } as Plotly.Data 
+
   let mrLCLTrace = {
     x: lineStore.xData,
-    y: Array(lineStore.yData.length).fill(lowerLimit),
+    y: Array(lineStore.yData.length).fill(lowerLimit.value),
     mode: 'lines',
     name: 'MR LCL',
     line: {
@@ -113,24 +120,18 @@ const renderChart = () => {
   }
   Plotly.newPlot(mrChart.value, data, layout, {responsive: true});
   
-  type Outlier = {
-    x: number;
-    y: number;
-    message: string;
-  };
-  
-  const outliers: Outlier[] = []
   const selectPoints = (array: number[]) => {
-    const result_1 = isOutsideControlLimits(array, upperLimit, lowerLimit)
+    lineStore.cleanmrOutliers()
+    const result_1 = isOutsideControlLimits(array, upperLimit.value, lowerLimit.value)
     if (result_1.isOutside) {
-      result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) => outliers.push(point)
+      result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) => lineStore.mrOutliers.push(point)
       )
     }
     const result_2 = isConsecutivePointsSameSide(array,mean)
     if (result_2.sameSide) {
       result_2.segments.forEach(segment => {
         segment.forEach(point=> {
-          outliers.push(point)
+          lineStore.mrOutliers.push(point)
         })
       })
     }
@@ -138,7 +139,7 @@ const renderChart = () => {
     if (result_3.increasingOrDecreasing) {
       result_3.segments.forEach(segment => {
         segment.forEach(point=> {
-          outliers.push(point)
+          lineStore.mrOutliers.push(point)
         })
       })
     }
@@ -146,7 +147,7 @@ const renderChart = () => {
     if (result_4.alternating) {
       result_4.segments.forEach(segment => {
         segment.forEach(point=> {
-          outliers.push(point)
+          lineStore.mrOutliers.push(point)
         })
       })
     }
@@ -161,16 +162,16 @@ const renderChart = () => {
       pointMessages.set(key, [point.message]);
     }
   }
-  for(const point of outliers) {
+  for(const point of lineStore.mrOutliers) {
     addPoint(point)
   }
-  const hovertext = outliers.map((point) => {
+  const hovertext = lineStore.mrOutliers.map((point) => {
     const key = `${point.x}_${point.y}`
     return pointMessages.get(key)?.join('<br>') || ''
   })
   const outlierTrace = {
-    x: outliers.map(outlier => outlier.x),
-    y: outliers.map(outlier => outlier.y),
+    x: lineStore.mrOutliers.map(outlier => outlier.x),
+    y: lineStore.mrOutliers.map(outlier => outlier.y),
     mode: 'markers+text',
     hovertext,
     name: 'Outliers',
@@ -191,12 +192,15 @@ onMounted(()=>{
     renderChart()
   })
   watch(
-    ()=> [lineStore.mrData.movingRanges, mainStore.isCollapse],
+    ()=> [lineStore.mrData.movingRanges, mainStore.isCollapse, mainStore.aiVisible],
     (newValues,oldValues)=> {
       if(newValues[0] !== oldValues[0]) {
         renderChart()
       }
       if(newValues[1] !== oldValues[1]) {
+        handleResize()
+      }
+      if(newValues[2] !== oldValues[2]) {
         handleResize()
       }
     }

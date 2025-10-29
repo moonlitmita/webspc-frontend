@@ -4,7 +4,8 @@
    See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
 */
 
-import axios, { AxiosHeaders } from 'axios'
+import type { AxiosInstance, AxiosHeaders } from 'axios'
+import axios from 'axios'
 import config from '../config'
 import { ElMessage } from 'element-plus'
 
@@ -14,57 +15,72 @@ interface MyHeaders extends AxiosHeaders {
   Authorization?: string
 }
 
-interface Options {
+interface Options<T = any> {
   url: string
   method: string
   mock: boolean
-  data: any
+  data?: any
   params?: any
+  responseType?: 'stream' | 'json' | 'arraybuffer' | 'blob' 
 }
 
-const service = axios.create({
-  baseURL: config.baseApi
-})
+// const service = axios.create({
+//   baseURL: config.baseApi
+// })
 
-service.interceptors.request.use((config)=> {
-  const token = localStorage.getItem('token')
-  if(token) {
-    (config.headers as MyHeaders).Authorization = `Bearer ${token}`
-  } 
-  return config
-},
-(error) => Promise.reject(error)
-)
+/* ========== 工厂：创建带统一拦截器的实例 ========== */
+function createService(baseURL: string): AxiosInstance {
+  const ins = axios.create({ baseURL })
 
-service.interceptors.response.use((res)=> {
-  const code = res.data.code || 200
-  const data = res.data.data
-  const msg = res.data.data.message
-  if(code === 200) {
-    return data
-  } 
-  else if (code === 401) {
-    ElMessage.error(msg || NETWORK_ERROR)
-  } else {
-    ElMessage.error(msg || NETWORK_ERROR)
-    return Promise.reject(msg || NETWORK_ERROR)
-  }
-    
-},
-(error)=> {
-  let { message } = error
-  if (message == "Network Error") {
-    message = "后端接口连接异常"
-  } else if (message.includes("timeout")) {
-    message = "系统接口请求超时"
-  } else if (message.includes("Request failed with status code")) {
-    message = "系统接口" + message.substr(message.length - 3) + "异常"
-  }
-  ElMessage.error(message)
-  return Promise.reject(error)
-}) 
+  ins.interceptors.request.use(
+    (config)=> {
+      const token = localStorage.getItem('token')
+      if(token) {
+        (config.headers as MyHeaders).Authorization = `Bearer ${token}`
+      } 
+      return config
+    },
+    (error) => Promise.reject(error)
+  )
 
-function request(options: Options) {
+  ins.interceptors.response.use(
+    (res)=> {
+      const code = res.data.code || 200
+      const data = res.data
+      const msg = res.data.data.message
+      if(code === 200) {
+        return data
+      } 
+      else if (code === 401) {
+        ElMessage.error(msg || NETWORK_ERROR)
+      } else {
+        ElMessage.error(msg || NETWORK_ERROR)
+        return Promise.reject(msg || NETWORK_ERROR)
+      }    
+    },
+    (error)=> {
+      let { message } = error
+      if (message == "Network Error") {
+        message = "后端接口连接异常"
+      } else if (message.includes("timeout")) {
+        message = "系统接口请求超时"
+      } else if (message.includes("Request failed with status code")) {
+        message = "系统接口" + message.substr(message.length - 3) + "异常"
+      }
+      ElMessage.error(message)
+      return Promise.reject(error)
+    }
+  )
+  return ins
+} 
+
+/* ========== 业务后端实例 ========== */
+export const service = createService(config.baseApi)
+
+/* ========== AI后端实例 ========== */
+export const aiService = createService(config.chatApi)
+
+export function request<T = any>(options: Options<T>): Promise<T> {
   options.method = options.method || 'get'
   if (options.method.toLowerCase()=='get') {
     options.params = options.data
@@ -78,6 +94,17 @@ function request(options: Options) {
   } else {
     service.defaults.baseURL = isMock ? config.mockApi : config.baseApi
   }
-  return service(options)
+  return service(options) as Promise<T>
 }
-export default request
+
+/* ========== 新增：MCP请求函数 ========== */
+export function MCPRequest<T = any>(options: Options<T>): Promise<T> {
+  options.method = options.method || 'post'
+  return aiService(options) as Promise<T>
+}
+
+/* ========== 新增：chat请求函数 ========== */
+export function chatRequest<T = any>(options: Options<T>): Promise<T> {
+  options.method = options.method || 'get'
+  return aiService(options) as Promise<T>
+}

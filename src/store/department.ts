@@ -5,13 +5,12 @@
 */
 
 import { defineStore } from "pinia";
-import api from '../api/api'
-import type { Dep, DepResponse } from '../api/api'
-import type { AxiosResponse } from 'axios'
+import api from '../api/mainApi'
+import type { DepResponse } from '../api/mainApi'
 
-interface DepConfig {
-  depList_pagination: Array<Dep>
-  depList_all: Array<Dep>
+interface DepState {
+  depList_pagination: DepResponse['data']['list'] 
+  depList_all:DepResponse['data']['all']                                  
   config: {
     total: number | null
     page: number
@@ -20,7 +19,7 @@ interface DepConfig {
   }
 }
 export const useDepStore = defineStore('dep', {
-  state: ():DepConfig => {
+  state: ():DepState => {
     return {
       depList_pagination: [],
       depList_all: [],
@@ -35,12 +34,12 @@ export const useDepStore = defineStore('dep', {
   getters: {},
   actions: {
     async getDepData(getAll: Boolean): Promise<void> { 
-      let res: AxiosResponse<DepResponse> = await api.getDepData({...this.config, getAll:getAll})
+      let res: DepResponse = await api.getDepData({...this.config, getAll:getAll})
       if(getAll) {
-        this.depList_all = res.all
+        this.depList_all = res.data.all || []
       } else {
-        this.config.total = res.total
-        this.depList_pagination= res.list
+        this.config.total = res.data.total ?? null
+        this.depList_pagination= res.data.list || []
       }
     },
     async addDep(val: any) {

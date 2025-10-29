@@ -39,16 +39,19 @@ import Pareto from './chart/Pareto.vue';
 import { useLineStore } from '../../store/lineData'
 
 const lineStore = useLineStore()
+
 interface ComponentList {
   label: LocationQueryValue
   cName: ReturnType<typeof defineAsyncComponent>
 }
+
 const route: RouteLocationNormalized = useRoute()
 const mainStore = useMainStore()
 const cList = shallowRef<ComponentList[] | undefined>([])
 const isActiveName = ref('1')
 lineStore.getDynamicComponentsList()
 cList.value = lineStore.cList
+
 </script>
 <style lang="less" scoped>
 .chart-container {

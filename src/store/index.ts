@@ -6,7 +6,8 @@
 
 import { defineStore } from "pinia";
 import type { RouteRecordRaw } from 'vue-router';
-import  type { Tab } from "../api/api";
+import  type { Tab } from "../api/mainApi";
+import { useChatStore } from "./chat";
 
 interface State {
   isCollapse: boolean,
@@ -15,7 +16,8 @@ interface State {
   menu:Array<Tab>,
   routes:Array<RouteRecordRaw>,
   token: string,
-  currentTab: number
+  currentTab: number,
+  aiVisible: boolean
 }
 export const useMainStore = defineStore('main', {
   state: ():State => {
@@ -34,22 +36,24 @@ export const useMainStore = defineStore('main', {
         label: '首页',
         icon: 'home',
       }],
-      menu: [{
-        path: "",
-        name: "",
-        label: "",
-        icon: "",
-        url: ""
-      }],
+      menu: [],
       routes: [],
       token: '',
-      currentTab: 0
+      currentTab: 0,
+      aiVisible: false
     }
   },
   getters: {},
   actions: {
     updateIsCollapse() {
       this.isCollapse = !this.isCollapse
+    },
+    toggleAi() {
+      this.aiVisible = !this.aiVisible
+      const chatStore = useChatStore()
+      if(!this.aiVisible) {
+        chatStore.endSession()
+      }
     },
     selectMenu(val:Tab) {
       if(val.name=='home') {

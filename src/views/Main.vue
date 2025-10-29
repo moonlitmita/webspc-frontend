@@ -13,6 +13,12 @@
       <CommonHeader class="common-header"></CommonHeader>
       <el-main class="right-main">
         <router-view></router-view>
+        <!-- AI 对话栏 -->
+        <transition name="slide">
+          <div v-if="mainStore.aiVisible" class="ai-chat">
+            <AiChatBox @close="mainStore.toggleAi"/>
+          </div>
+        </transition>
       </el-main>
     </el-container>
   </div>
@@ -21,9 +27,15 @@
 import { useRoute } from 'vue-router';
 import CommonAside from '../components/common/CommonAside.vue';
 import CommonHeader from '../components/common/CommonHeader.vue';
+import AiChatBox from './chatbox/AiChatBox.vue';
+import { ref, provide } from 'vue';
+import { useMainStore } from '../store'
 
-const router = useRoute()
-const currentRoute = router.meta
+const mainStore = useMainStore()
+const route = useRoute()
+const currentRoute = route.meta
+// const aiVisible = ref(false)
+// provide('toggleAi', () => (aiVisible.value = !aiVisible.value))
 </script>
 <style lang='less' scoped>
 .common-layout {
@@ -54,8 +66,14 @@ const currentRoute = router.meta
       padding: 0;
       flex: 1;
       display: flex;
-      flex-direction: column;
       align-items: stretch;
+      .ai-chat {
+        flex: 0 0 360px;      /* 固定宽度 */
+        height: 100%;
+        border-left: 1px solid #e4e7ed;
+        overflow: hidden;
+        background-color: #288358ff;
+      }
     }
   }
   .common-aside {
