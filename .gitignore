@@ -25,5 +25,13 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+.crush
 
 *.tsbuildinfo
+
+# 忽略QWEN.md
+QWEN.md
+
+#忽略自动生成文件
+auto-imports.d.ts
+components.d.ts
