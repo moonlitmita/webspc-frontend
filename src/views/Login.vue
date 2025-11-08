@@ -50,15 +50,20 @@
       </div>
       <div>
         <a href="https://gitee.com/valleyfo/webspc-frontend" target="_blank" rel="noopener">
-          WebSPC前端开源地址
+          WebSPC 前端业务开源地址
         </a>
       </div>
       <div>
         <a href="https://gitee.com/valleyfo/webspc-backend" target="_blank" rel="noopener">
-          WebSPC常规业务后端开源地址
+          WebSPC 常规后端业务开源地址
         </a>
       </div>
-      <div>版本: v1.0.1</div>
+      <div>
+        <a href="https://gitee.com/valleyfo/webspc-ai" target="_blank" rel="noopener">
+          WebSPC AI后端业务开源地址
+        </a>
+      </div>
+      <div>版本: v2.0.0</div>
     </div>
     <!-- 底部备案信息 -->
     <!-- <div class="icp-footer">

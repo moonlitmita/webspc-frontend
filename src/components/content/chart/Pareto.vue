@@ -5,19 +5,25 @@
 */
 
 <script lang="ts" setup>
-import Plotly from 'plotly.js-dist-min'
+import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { onMounted, ref, watch } from 'vue'
 import { useLineStore } from '../../../store/lineData'
 
 const lineStore = useLineStore()
 const pareto = ref()
+let Plotly: PlotlyType | null = null
 
 type DataItem = {
   category: string;
   value: number;
 }
 
-const renderChart =()=> {
+const renderChart = async ()=> {
+  // Load Plotly if not already loaded
+  if (!Plotly) {
+    Plotly = await loadPlotly();
+  }
+  
   let data: DataItem[] = [{category: '组间方差分量',value: Number(lineStore.varianceBetween)}, {category: '组内方差分量',value: Number(lineStore.varianceWithin)}]
   const sortedData = data.sort((a, b) => b.value - a.value)
   const sum = data.reduce((accumulator, currentItem) => accumulator + currentItem.value, 0)
@@ -26,7 +32,7 @@ const renderChart =()=> {
     cumulativePercentage += (item.value / sum) * 100
     return cumulativePercentage.toFixed(2)
   })
-  const barData: Plotly.Data = {
+  const barData: any = {
     x: sortedData.map(item => item.category),
     y: sortedData.map(item => item.value),
     type: 'bar',
@@ -34,7 +40,7 @@ const renderChart =()=> {
     name: 'Values',
     showlegend: false
   } 
-  const lineData: Plotly.Data = {
+  const lineData: any = {
     x: sortedData.map(item => item.category),
     y: cumulativePercentages,
     type: 'scatter',
@@ -42,19 +48,19 @@ const renderChart =()=> {
     name: 'Cumulative Percentage',
     showlegend: false
   }
-  const layout: Partial<Plotly.Layout> = {
+  const layout: any = {
     title: {
       text: '变异组成帕累托图',
       yanchor:'middle',
     },
     xaxis: {
-      title: '类别' as Partial<Plotly.Layout>
+      title: '类别'
     },
     yaxis: {
-      title: '观测值' as Partial<Plotly.Layout>
+      title: '观测值'
     },
     yaxis2: {
-      title: '累积百分比(%)' as Partial<Plotly.Layout>, 
+      title: '累积百分比(%)', 
       overlaying: 'y',
       side: 'right',
       showgrid: false,
@@ -70,12 +76,12 @@ const renderChart =()=> {
   Plotly.newPlot(pareto.value, data1, layout, {responsive: true})
 }
 
-onMounted(()=> {
-  renderChart()
+onMounted(async ()=> {
+  await renderChart()
   watch(()=>[lineStore.varianceBetween, lineStore.varianceWithin],
-    (newvalues, oldValues)=> {
+    async (newvalues, oldValues)=> {
       if(newvalues !== oldValues) {
-        renderChart()
+        await renderChart()
       }
     }
   )
