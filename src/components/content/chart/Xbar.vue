@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { onMounted, watch, ref } from 'vue'
-import Plotly from 'plotly.js-dist-min'
+import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
 import type { Outlier } from '../../../store/lineData'
 import { useMainStore } from '../../../store';
@@ -18,6 +18,7 @@ import { isOutsideControlLimits, isConsecutivePointsSameSide, isConsecutiveIncre
 const lineStore = useLineStore()
 const mainStore = useMainStore()
 const xBar = ref()
+let Plotly: PlotlyType | null = null
 const sampleSize = lineStore.sampleSize
 const USL = lineStore.USL
 const LSL = lineStore.LSL
@@ -46,7 +47,12 @@ const updateDynamicLimits= ()=> {
   ppk.value = Number(cpk_ppk(USL, LSL, mean.value, sigma_overall.value).toFixed(2))
 }
 
-const renderChart = () => {
+const renderChart = async () => {
+  // Load Plotly if not already loaded
+  if (!Plotly) {
+    Plotly = await loadPlotly();
+  }
+  
   updateDynamicLimits()
   let Data1 = {
     type: 'scatter',
@@ -67,7 +73,7 @@ const renderChart = () => {
       symbol: 'circle'
     },
     customdata: lineStore.date
-  } as Plotly.Data
+  } as any // Using 'any' since we're loading Plotly dynamically
   let xBarUCLTrace = {
     x: lineStore.xData,
     y: Array(lineStore.yData.length).fill(upperLimit.value),
@@ -79,7 +85,7 @@ const renderChart = () => {
       dash: 'dash',
       width: 1
     }
-  } as Plotly.Data 
+  } as any 
 
   let xBarLCLTrace = {
     x: lineStore.xData,
@@ -92,7 +98,7 @@ const renderChart = () => {
       dash: 'dash',
       width: 1
     }
-  } as Plotly.Data
+  } as any
   let Centre = {
     type: 'scatter',
     x: lineStore.xData,
@@ -104,9 +110,9 @@ const renderChart = () => {
       color: 'grey',
       width: 2
     }
-  } as Plotly.Data
+  } as any
   let data = [Data1,xBarUCLTrace,xBarLCLTrace,Centre]
-  let layout: Partial<Plotly.Layout>= {
+  let layout: any = {
     autosize: true,
     legend: {
       x: 1.015,
@@ -276,18 +282,20 @@ Cpk: ${cpk.value}
   Plotly.addTraces(xBar.value, [outlierTrace])
 }
 function handleResize() {
-  Plotly.Plots.resize(xBar.value)
+  if (Plotly) {
+    Plotly.Plots.resize(xBar.value)
+  }
 }
 const getAll = true
-onMounted(()=>{
-  lineStore.loadData(getAll).then(()=> {
-    renderChart()
+onMounted(async ()=>{
+  lineStore.loadData(getAll).then(async ()=> {
+    await renderChart()
   })
   watch(
     ()=> [ lineStore.yData, mainStore.isCollapse, mainStore.aiVisible ],
-    (newValues,oldValues)=> {
+    async (newValues,oldValues)=> {
       if(newValues[0] !== oldValues[0]) {
-        renderChart()
+        await renderChart()
       }
       if(newValues[1] !== oldValues[1]) {
         handleResize()

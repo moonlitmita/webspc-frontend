@@ -11,6 +11,8 @@
    前端业务代码地址：https://gitee.com/valleyfo/webspc-frontend
 
    常规后端业务代码地址：https://gitee.com/valleyfo/webspc-backend
+
+   AI后端业务代码地址:https://gitee.com/valleyfo/webspc-ai
    
 
 # 项目架构

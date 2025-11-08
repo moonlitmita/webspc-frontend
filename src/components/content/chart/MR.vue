@@ -9,7 +9,7 @@
 </template>
 <script lang="ts" setup>
 import { onMounted, watch, ref} from 'vue'
-import Plotly from 'plotly.js-dist-min'
+import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
 import type { Outlier } from '../../../store/lineData'
 import { useMainStore } from '../../../store'
@@ -23,8 +23,14 @@ const mainStore = useMainStore()
 const upperLimit = ref(0)
 const lowerLimit = ref(0)
 const mrChart = ref()
+let Plotly: PlotlyType | null = null
 
-const renderChart = () => {
+const renderChart = async () => {
+  // Load Plotly if not already loaded
+  if (!Plotly) {
+    Plotly = await loadPlotly();
+  }
+  
   upperLimit.value = getD4(2)*lineStore.mrData.mrBar
   lowerLimit.value = getD3(2)*lineStore.mrData.mrBar
   lineStore.updatemrCL(upperLimit.value, lowerLimit.value)
@@ -48,7 +54,7 @@ const renderChart = () => {
       symbol: 'circle'
     },
     customdata: lineStore.date
-  } as Plotly.Data
+  } as any
   let mrUCLTrace = {
     x: lineStore.xData,
     y: Array(lineStore.yData.length).fill(upperLimit.value),
@@ -59,7 +65,7 @@ const renderChart = () => {
       dash: 'dash',
       width: 1
     }
-  } as Plotly.Data 
+  } as any 
 
   let mrLCLTrace = {
     x: lineStore.xData,
@@ -71,7 +77,7 @@ const renderChart = () => {
       dash: 'dash',
       width: 1
     }
-  } as Plotly.Data
+  } as any
   let Centre = {
     type: 'scatter',
     x: lineStore.xData,
@@ -84,9 +90,9 @@ const renderChart = () => {
       dash: 'dash',
       width: 1
     }
-  } as Plotly.Data
+  } as any
   let data = [Data1,mrUCLTrace,mrLCLTrace,Centre]
-  let layout: Partial<Plotly.Layout>= {
+  let layout: any = {
     autosize: true,
     legend: {
       x: 1.00,
@@ -184,18 +190,20 @@ const renderChart = () => {
   Plotly.addTraces(mrChart.value, [outlierTrace]);
 }
 function handleResize() {
-  Plotly.Plots.resize(mrChart.value)
+  if (Plotly) {
+    Plotly.Plots.resize(mrChart.value)
+  }
 }
-onMounted(()=>{
+onMounted(async ()=> {
   const getAll = true
-  lineStore.loadData(getAll).then(()=> {
-    renderChart()
+  lineStore.loadData(getAll).then(async ()=> {
+    await renderChart()
   })
   watch(
     ()=> [lineStore.mrData.movingRanges, mainStore.isCollapse, mainStore.aiVisible],
-    (newValues,oldValues)=> {
+    async (newValues,oldValues)=> {
       if(newValues[0] !== oldValues[0]) {
-        renderChart()
+        await renderChart()
       }
       if(newValues[1] !== oldValues[1]) {
         handleResize()
