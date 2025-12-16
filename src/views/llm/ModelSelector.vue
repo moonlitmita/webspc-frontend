@@ -6,6 +6,9 @@
 
 <template>
   <div class="llm-container">
+    <div class="header">
+      <h2>LLM管理</h2>
+    </div>
     <div class="model-selector">
       <div class="selector-pair">
         <div class="selector-group">
@@ -214,7 +217,8 @@ async function handleCopy() {
 }
 .model-selector {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: flex-start; /* 左对齐 */
   flex-shrink: 0; /* 防止收缩 */
 }
 
@@ -223,12 +227,26 @@ async function handleCopy() {
   align-items: end;
   gap: 15px;
   flex-wrap: wrap; /* 允许换行 */
+  margin-bottom: 20px; /* 给选择器组底部留出空间 */
 }
 
 .selector-group {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start; /* 左对齐 */
+  margin: 0;
+  min-width: 200px; /* 为选择器设置最小宽度 */
+}
+
+.header {
+  margin-bottom: 20px; /* 调整标题下方间距 */
+  align-self: flex-start; /* 保持左对齐 */
+}
+
+.header h2 {
+  margin: 0;
+  color: #303133;
+  padding-left: 2px; /* 与标签保持一致的左边距 */
 }
 
 .selector-label {
@@ -247,6 +265,8 @@ async function handleCopy() {
 
 .apply-btn {
   margin-bottom: 2px; /* Align with the bottom of the selectors */
+  align-self: flex-end; /* 底部对齐 */
+  margin-left: 15px; /* 为应用按钮留出左边距 */
 }
 
 .model-option {
@@ -267,7 +287,7 @@ async function handleCopy() {
 /* 模型配置编辑区域样式 */
 .model-config-container {
   box-sizing: border-box;
-  margin-top: 30px;
+  margin-top: 20px; /* 调整上方间距 */
   border: 1px solid #e4e7ed;
   border-radius: 4px;
   background: #fafafa;

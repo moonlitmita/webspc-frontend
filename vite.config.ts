@@ -30,11 +30,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Split plotly into its own chunk - this is now redundant since we're using modular approach
-          elementPlus: ['element-plus'],
-          vueCore: ['vue', 'vue-router', 'pinia'],
-        }
+        // Remove manual chunking to avoid initialization issues in K3s deployment
+        // Let Vite handle chunking automatically to maintain proper initialization order
       }
     },
     chunkSizeWarningLimit: 1000 // Increase limit to account for plotly modules

@@ -6,29 +6,35 @@
 
 <template>
   <div class="project-container">
-    <div class="project-header">
-      <div class="add">
-        <el-button type="primary" @click="handleAdd">+新增</el-button>
-      </div>
-      <el-form :inline="true" :model="formInline" @submit.native.prevent>
-        <el-form-item label="请输入">
-          <el-input v-model="formInline.keyword" placeholder="部门，制程或项目名称" @keyup.enter.native="handleSearch"></el-input>
+    <div class="header">
+      <h2>项目管理</h2>
+      <el-button type="primary" @click="handleAdd">添加项目</el-button>
+    </div>
+
+    <el-card class="search-card">
+      <el-form :model="formInline" inline @submit.native.prevent>
+        <el-form-item label="项目名称">
+          <el-input v-model="formInline.keyword" placeholder="请输入部门，制程或项目名称" @keyup.enter.native="handleSearch"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </el-card>
     <div class="table-container">
       <div class="my-table">
         <div class="table-content">
-          <el-table :data="projectStore.projectList" style="width: 100%">
-            <el-table-column 
+          <el-table :data="projectStore.projectList" style="width: 100%"
+                    v-loading="loading"
+                    fit>
+            <el-table-column
               v-for="item in tableLabel"
               :key="item.prop"
               :label="item.label"
               :prop="item.prop"
               :width="item.width"
+              show-overflow-tooltip
             />
             <el-table-column fixed="right" label="跳转" width="80">
               <template #default="scope">
@@ -40,7 +46,7 @@
             </el-table-column>
             <el-table-column fixed="right" label="操作" width="200">
               <template #default="scope">
-                <el-button size="small" @click="handleEdit(scope.row)">
+                <el-button type="primary" size="small" @click="handleEdit(scope.row)">
                   <el-icon style="font-size: 13px; margin-right: 3px;"><Edit /></el-icon>
                   编辑
                 </el-button>
@@ -57,9 +63,10 @@
             v-model:current-page="projectStore.config.page"
             v-model:page-size="projectStore.config.pageSize"
             :page-sizes="[5,10,15,20]"
-            @current-change="changePage"
             layout="total,sizes,prev,pager,next,jumper" 
             :total="projectStore.config.total"
+            @size-change="handleSizeChange"
+            @current-change="changePage"
           />
         </div>
       </div>
@@ -226,6 +233,7 @@ const depStore = useDepStore()
 const processStore = useProcessStore()
 
 const projectForm: Ref<typeof ElForm | null> = ref(null)
+const loading = ref(false)
 const dialogVisible = ref(false)
 let isSampleSizeDisabled = ref(false)
 let isCollectionTypeDisabled = ref(false)
@@ -260,7 +268,7 @@ type RuleForm = {
 }
 
 const tableLabel = reactive(
-  [   
+  [
     {
       prop: 'id',
       label: "项目ID",
@@ -276,7 +284,7 @@ const tableLabel = reactive(
       label: "制程",
       width: '60'
     },
-    {   
+    {
       prop: "product",
       label: "产品",
       width: '80'
@@ -444,14 +452,25 @@ function validateSpcType(rule: any, value: any, callback: any) {
 }
 
 onMounted(()=>{
+  loading.value = true
   depStore.getDepData(true)
   processStore.getProcessData(true)
-  projectStore.getProjectData()
+  projectStore.getProjectData().finally(() => {
+    loading.value = false
+  })
 })
+const handleSizeChange = (val: number) => {
+  projectStore.config.pageSize = val
+  projectStore.config.page = 1
+  projectStore.getProjectData()
+}
 
 const changePage= (page: number) =>{
+  loading.value = true
   projectStore.config.page=page
-  projectStore.getProjectData()
+  projectStore.getProjectData().finally(() => {
+    loading.value = false
+  })
 }
 
 const formInline = reactive({
@@ -463,8 +482,20 @@ watchEffect(()=> {
   projectStore.config.searchInfo = formInline.keyword
 })
 const handleSearch = ()=>{
+  loading.value = true
   projectStore.config.searchInfo = formInline.keyword
-  projectStore.getProjectData()
+  projectStore.getProjectData().finally(() => {
+    loading.value = false
+  })
+}
+
+const handleReset = () => {
+  formInline.keyword = ''
+  projectStore.config.searchInfo = ''
+  loading.value = true
+  projectStore.getProjectData().finally(() => {
+    loading.value = false
+  })
 }
 
 const handleCancel = () => {
@@ -510,6 +541,7 @@ const handleDelete = (row: Project)=> {
       center: true,
     })
     .then(() => {
+      loading.value = true
       projectStore.deleteProject({
         id:row.id
       }).then(()=> {
@@ -519,10 +551,13 @@ const handleDelete = (row: Project)=> {
           type: "success"
         })
       projectStore.getProjectData()
+      }).finally(() => {
+        loading.value = false
       })
    })
    .catch(() => {
      // catch error
+     loading.value = false
      ElMessage.error('删除失败')
    })
 }
@@ -556,20 +591,26 @@ const handleClose = (done:()=>void) => {
 const onSubmit = () => {
   projectForm.value?.validate((valid: Boolean)=>{
     if(valid) {
+      loading.value = true
       if(action.value=='add') {
         projectStore.addProject(state.formProject).then(()=> {
           projectStore.getProjectData()
+        }).finally(() => {
+          loading.value = false
         })
         projectForm.value?.resetFields()
         dialogVisible.value=false
       } else {
         projectStore.editProject(state.formProject).then(()=> {
           projectStore.getProjectData()
+        }).finally(() => {
+          loading.value = false
         })
         projectForm.value?.resetFields()
         dialogVisible.value=false
       }
     } else {
+      loading.value = false
       ElMessage({
         showClose: true,
         message: '请输入正确内容',
@@ -581,34 +622,46 @@ const onSubmit = () => {
 </script>
 <style lang='less' scoped>
 .project-container {
-  box-sizing: border-box;
+  padding: 20px;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  padding-top: 5px;
-  .project-header {
-    box-sizing: border-box;
-    display:flex;
-    height: 35px;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  .header {
+    display: flex;
     justify-content: space-between;
-    .add {
-      margin-left: 10px;
-    }
+    align-items: center;
+    margin-bottom: 20px;
   }
+  .search-card {
+    margin-bottom: 20px;
+  }
+
   .table-container {
-    flex: 1 1 auto;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     .my-table {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      .tabel-content {
-        flex: 1;
+      .table-content {
+        flex-shrink: 1;
+        flex-grow: 1;
+        flex-basis: auto;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
       }
       .pager {
-        margin-top: 0px;
-        margin-left: 5px;
+        height: 32px;
+        flex-shrink: 0;
       }
     }
   }

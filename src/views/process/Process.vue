@@ -6,23 +6,27 @@
 
 <template>
   <div class="process-container">
-    <div class="process-header">
-      <div class="add">
-         <el-button type="primary" @click="handleAdd">+新增</el-button>
-      </div>
-      <el-form :inline="true" :model="formInline" @submit.native.prevent>
-        <el-form-item label="请输入">
-          <el-input v-model="formInline.keyword" placeholder="部门或制程名称" @keyup.enter.native="handleSearch"></el-input>
+    <div class="header">
+      <h2>制程管理</h2>
+      <el-button type="primary" @click="handleAdd">添加制程</el-button>
+    </div>
+
+    <el-card class="search-card">
+      <el-form :model="formInline" inline @submit.native.prevent>
+        <el-form-item label="制程名称">
+          <el-input v-model="formInline.keyword" placeholder="请输入部门或制程名称" @keyup.enter.native="handleSearch"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </el-card>
     <div class="table-container">
       <div class="my-table">
         <div class="table-content">
-          <el-table :data="processStore.processList_pagination" style="width: 100%">
+          <el-table :data="processStore.processList_pagination" style="width: 100%"
+                    v-loading="loading">
             <el-table-column 
               v-for="item in tableLabel"
               :key="item.prop"
@@ -32,7 +36,7 @@
             />
             <el-table-column fixed="right" label="操作" width="200">
               <template #default="scope">
-                <el-button size="small" @click="handleEdit(scope.row)">
+                <el-button type="primary" size="small" @click="handleEdit(scope.row)">
                   <el-icon style="font-size: 13px; margin-right: 3px"><Edit /></el-icon>
                   编辑
                 </el-button>
@@ -49,9 +53,10 @@
             v-model:current-page="processStore.config.page"
             v-model:page-size="processStore.config.pageSize"
             :page-sizes="[5,10,15,20]"
-            @current-change="changePage"
             layout="total,sizes,prev,pager,next,jumper" 
             :total="processStore.config.total"
+            @size-change="handleSizeChange"
+            @current-change="changePage"
           />
         </div>
       </div>
@@ -110,6 +115,7 @@ const processStore = useProcessStore()
 const depStore = useDepStore()
 
 const processForm: Ref<typeof ElForm | null> = ref(null)
+const loading = ref(false)
 const dialogVisible = ref(false)
 const tableLabel = reactive(
   [ 
@@ -143,8 +149,11 @@ const tableLabel = reactive(
 )
 
 onMounted(()=>{
+  loading.value = true
   depStore.getDepData(true)
-  processStore.getProcessData(false)
+  processStore.getProcessData(false).finally(() => {
+    loading.value = false
+  })
 })
 const fixedOption = {value: '', label: '请选择'}
 const depOptions = computed(()=> {
@@ -154,9 +163,18 @@ const depOptions = computed(()=> {
    })))
 })
 
-const changePage= (page: number) =>{
-  processStore.config.page=page
+const handleSizeChange = (val: number) => {
+  processStore.config.pageSize = val
+  processStore.config.page = 1
   processStore.getProcessData(false)
+}
+
+const changePage= (page: number) =>{
+  loading.value = true
+  processStore.config.page=page
+  processStore.getProcessData(false).finally(() => {
+    loading.value = false
+  })
 }
 
 const formInline = reactive({
@@ -168,7 +186,19 @@ watchEffect(()=> {
 })
 
 const handleSearch = ()=>{
-  processStore.getProcessData(false)
+  loading.value = true
+  processStore.getProcessData(false).finally(() => {
+    loading.value = false
+  })
+}
+
+const handleReset = () => {
+  formInline.keyword = ''
+  processStore.config.searchInfo = ''
+  loading.value = true
+  processStore.getProcessData(false).finally(() => {
+    loading.value = false
+  })
 }
 
 const handleCancel = () => {
@@ -196,6 +226,7 @@ const handleDelete = (row: Process)=> {
       center: true,
     })
     .then(() => {
+      loading.value = true
       processStore.deleteProcess({
         id:row.id
       }).then(()=> {
@@ -205,10 +236,13 @@ const handleDelete = (row: Process)=> {
           type: "success"
         })
         processStore.getProcessData(false)
+      }).finally(() => {
+        loading.value = false
       })
    })
    .catch(() => {
      // catch error
+     loading.value = false
      ElMessage.error('删除失败')
    })
 }
@@ -243,9 +277,12 @@ const formProcess = reactive({
 const onSubmit = () => {
   processForm.value?.validate((valid: Boolean)=>{
     if(valid) {
+      loading.value = true
       if(action.value=='add') {
         processStore.addProcess(formProcess).then(()=> {
           processStore.getProcessData(false)
+        }).finally(() => {
+          loading.value = false
         })
         processForm.value?.resetFields()
         dialogVisible.value=false
@@ -253,11 +290,14 @@ const onSubmit = () => {
         let res = processStore.editProcess(formProcess)
         processStore.editProcess(formProcess).then(()=> {
           processStore.getProcessData(false)
+        }).finally(() => {
+          loading.value = false
         })
         processForm.value?.resetFields()
         dialogVisible.value=false
       }
     } else {
+      loading.value = false
       ElMessage({
         showClose: true,
         message: '请输入正确内容',
@@ -269,29 +309,47 @@ const onSubmit = () => {
 </script>
 <style lang='less' scoped>
 .process-container {
+  padding: 20px;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  padding-top: 5px;
-  .process-header{
-    display:flex;
-    height: 35px;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  .header {
+    display: flex;
     justify-content: space-between;
-    .add {
-      margin-left: 10px;
-    }
+    align-items: center;
+    margin-bottom: 20px;
   }
+
+  .search-card {
+    margin-bottom: 20px;
+  }
+
   .table-container {
-    flex: 1 1 auto;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     .my-table {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
+      .table-content {
+        flex-shrink: 1;
+        flex-grow: 1;
+        flex-basis: auto;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+      }
       .pager {
-        margin-top: 0px;
-        margin-left: 5px;
+        height: 32px;
+        flex-shrink: 0;
       }
     }
   }

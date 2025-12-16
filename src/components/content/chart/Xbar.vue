@@ -5,7 +5,7 @@
 */
 
 <script setup lang="ts">
-import { onMounted, watch, ref } from 'vue'
+import { onMounted, onUnmounted, watch, ref, nextTick } from 'vue'
 import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
 import type { Outlier } from '../../../store/lineData'
@@ -38,8 +38,8 @@ const updateDynamicLimits= ()=> {
   mean.value = Number(lineStore.xBarMean.xBarMean.toFixed(2))
   sigma_group.value = ((1/result)*(lineStore.rBar.rBar)/getD2(sampleSize)).toFixed(2)
   sigma_overall.value = calculateSampleStandardDeviation(lineStore.yData.flat(), mean.value).toFixed(2)
-  upperLimit.value = mean.value + 3*sigma_group.value  
-  lowerLimit.value = mean.value - 3*sigma_group.value  
+  upperLimit.value = mean.value + 3*sigma_group.value
+  lowerLimit.value = mean.value - 3*sigma_group.value
   lineStore.updatexbarCL(upperLimit.value, lowerLimit.value)
   cp.value = Number(cp_pp(USL,LSL,sigma_group.value).toFixed(2))
   pp.value = Number(cp_pp(USL,LSL,sigma_overall.value).toFixed(2))
@@ -52,7 +52,7 @@ const renderChart = async () => {
   if (!Plotly) {
     Plotly = await loadPlotly();
   }
-  
+
   updateDynamicLimits()
   let Data1 = {
     type: 'scatter',
@@ -85,7 +85,7 @@ const renderChart = async () => {
       dash: 'dash',
       width: 1
     }
-  } as any 
+  } as any
 
   let xBarLCLTrace = {
     x: lineStore.xData,
@@ -112,6 +112,9 @@ const renderChart = async () => {
     }
   } as any
   let data = [Data1,xBarUCLTrace,xBarLCLTrace,Centre]
+  const chartWindow = 150
+  const start = lineStore.xData[lineStore.xData.length - chartWindow]
+  const end = lineStore.xData[lineStore.xData.length - 1]
   let layout: any = {
     autosize: true,
     legend: {
@@ -129,7 +132,7 @@ const renderChart = async () => {
     },
     xaxis: {
       zeroline: false,
-      range: [0, 151]
+      range: [start, end]
     },
     yaxis: {
       autorange: true,
@@ -171,8 +174,8 @@ Cpk: ${cpk.value}
       }
     ]
   }
-  Plotly.newPlot(xBar.value, data, layout, { responsive: true })
- 
+  Plotly.react(xBar.value, data, layout, { responsive: true })
+
   const selectPoints = (array: number[]) => {
     lineStore.cleanxbarOutliers()
     lineStore.selectedRules.forEach(check => {
@@ -180,7 +183,7 @@ Cpk: ${cpk.value}
         case 'isOutsideControlLimits':
           const result_1 = isOutsideControlLimits(array, upperLimit.value, lowerLimit.value)
           if (result_1.isOutside) {
-            result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) => 
+            result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) =>
               lineStore.xbarOutliers.push(point)
             )}
           break
@@ -286,33 +289,55 @@ function handleResize() {
     Plotly.Plots.resize(xBar.value)
   }
 }
-const getAll = true
 onMounted(async ()=>{
-  lineStore.loadData(getAll).then(async ()=> {
+  lineStore.loadData(true).then(async ()=> {
     await renderChart()
   })
   watch(
-    ()=> [ lineStore.yData, mainStore.isCollapse, mainStore.aiVisible ],
+    ()=> [ lineStore.yData, mainStore.isCollapse],
     async (newValues,oldValues)=> {
       if(newValues[0] !== oldValues[0]) {
         await renderChart()
       }
       if(newValues[1] !== oldValues[1]) {
-        handleResize()
-      }
-      if(newValues[2] !== oldValues[2]) {
-        handleResize()
+        nextTick(() => {
+          handleResize()
+        })
       }
     }
   )
+
+  // 监听AI面板动画完成事件
+  window.addEventListener('aiPanelTransitionEnd', handleResize);
 })
+
+// 组件卸载前清理事件监听器
+onUnmounted(() => {
+  window.removeEventListener('aiPanelTransitionEnd', handleResize);
+});
 
 </script>
 <template>
-   <div ref="xBar" class = 'x-bar'>
+   <div class="chart-container">
+     <div ref="xBar" class="chart x-bar">
+     </div>
    </div>
 </template>
 <style scoped>
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.chart {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
 .x-bar {
   .button {
     display: flex;

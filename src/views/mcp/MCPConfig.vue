@@ -6,6 +6,9 @@
 
 <template>
   <div class="mcp-config-container">
+    <div class="header">
+      <h2>MCP配置管理</h2>
+    </div>
     <el-row :gutter="20">
       <!-- 左侧 MCP Server 列表 -->
       <el-col :span="8">
@@ -174,6 +177,17 @@ async function handleCopy() {
   display: flex;
   flex-direction: column;
   padding: 30px;
+}
+
+.header {
+  margin-bottom: 20px; /* 调整标题下方间距 */
+  align-self: flex-start; /* 保持左对齐 */
+}
+
+.header h2 {
+  margin: 0;
+  color: #303133;
+  padding-left: 2px; /* 与标签保持一致的左边距 */
 }
 
 .mcp-server-list {

@@ -66,15 +66,15 @@
       <div>版本: v2.0.0</div>
     </div>
     <!-- 底部备案信息 -->
-    <!-- <div class="icp-footer">
+    <div class="icp-footer">
       <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">
-        XICP备XXXXXXXXXX号
+        <!-- XICP备XXXXXXXXXX号 -->
       </a>
       <span class="sep">|</span>
       <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener">
-        X公网安备XXXXXXXXXXXXXX号
+        <!-- X公网安备XXXXXXXXXXXXXX号 -->
       </a>
-    </div> -->
+    </div>
   </div>
 </template>
 <script lang="ts" setup>

@@ -5,10 +5,12 @@
 */
 
 <template>
-  <div ref="mrChart"></div>
+  <div class="mr-chart-container">
+    <div ref="mrChart" class="chart"></div>
+  </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, watch, ref} from 'vue'
+import { onMounted, onBeforeUnmount, onUnmounted, watch, ref, nextTick} from 'vue'
 import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
 import type { Outlier } from '../../../store/lineData'
@@ -30,7 +32,7 @@ const renderChart = async () => {
   if (!Plotly) {
     Plotly = await loadPlotly();
   }
-  
+
   upperLimit.value = getD4(2)*lineStore.mrData.mrBar
   lowerLimit.value = getD3(2)*lineStore.mrData.mrBar
   lineStore.updatemrCL(upperLimit.value, lowerLimit.value)
@@ -65,7 +67,7 @@ const renderChart = async () => {
       dash: 'dash',
       width: 1
     }
-  } as any 
+  } as any
 
   let mrLCLTrace = {
     x: lineStore.xData,
@@ -92,6 +94,9 @@ const renderChart = async () => {
     }
   } as any
   let data = [Data1,mrUCLTrace,mrLCLTrace,Centre]
+  const chartWindow = 150
+  const start = lineStore.xData[lineStore.xData.length - chartWindow]
+  const end = lineStore.xData[lineStore.xData.length - 1]
   let layout: any = {
     autosize: true,
     legend: {
@@ -110,7 +115,7 @@ const renderChart = async () => {
     },
     xaxis: {
       zeroline: false,
-      range: [0, 151]
+      range: [start, end]
     },
     yaxis: {
       autorange: true,
@@ -124,8 +129,10 @@ const renderChart = async () => {
       color:'dark'
     }
   }
-  Plotly.newPlot(mrChart.value, data, layout, {responsive: true});
-  
+  if (mrChart.value && Plotly) {
+    Plotly.react(mrChart.value, data, layout, {responsive: true});
+  }
+
   const selectPoints = (array: number[]) => {
     lineStore.cleanmrOutliers()
     const result_1 = isOutsideControlLimits(array, upperLimit.value, lowerLimit.value)
@@ -187,32 +194,71 @@ const renderChart = async () => {
       symbol: 'cross'
     }
   }
-  Plotly.addTraces(mrChart.value, [outlierTrace]);
+  if (mrChart.value && Plotly) {
+    Plotly.addTraces(mrChart.value, [outlierTrace]);
+  }
 }
 function handleResize() {
-  if (Plotly) {
+  if (Plotly && mrChart.value) {
     Plotly.Plots.resize(mrChart.value)
   }
 }
+
+// 组件卸载前的清理工作
+onBeforeUnmount(() => {
+  // 如果需要，可以在这里销毁plotly图表
+  if (Plotly && mrChart.value) {
+    try {
+      Plotly.purge(mrChart.value); // 清理plotly图表
+    } catch (e) {
+      console.warn('Error while purging plotly chart:', e);
+    }
+  }
+});
+
 onMounted(async ()=> {
   const getAll = true
   lineStore.loadData(getAll).then(async ()=> {
     await renderChart()
   })
   watch(
-    ()=> [lineStore.mrData.movingRanges, mainStore.isCollapse, mainStore.aiVisible],
+    ()=> [lineStore.mrData.movingRanges, mainStore.isCollapse],
     async (newValues,oldValues)=> {
       if(newValues[0] !== oldValues[0]) {
-        await renderChart()
+        if (mrChart.value) {  // 确保DOM元素存在
+          await renderChart()
+        }
       }
       if(newValues[1] !== oldValues[1]) {
-        handleResize()
-      }
-      if(newValues[2] !== oldValues[2]) {
-        handleResize()
+        nextTick(() => {
+          handleResize()
+        })
       }
     }
   )
+
+  // 监听AI面板动画完成事件
+  window.addEventListener('aiPanelTransitionEnd', handleResize);
 })
 
+// 组件卸载前清理事件监听器
+onUnmounted(() => {
+  window.removeEventListener('aiPanelTransitionEnd', handleResize);
+});
+
 </script>
+<style scoped>
+.mr-chart-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.chart {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+</style>

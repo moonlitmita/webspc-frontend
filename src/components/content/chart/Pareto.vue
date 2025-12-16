@@ -73,7 +73,9 @@ const renderChart = async ()=> {
     margin: {"t": 25, "b": 30, "l": 35, "r": 35},
   }
   const data1 = [barData, lineData]
-  Plotly.newPlot(pareto.value, data1, layout, {responsive: true})
+  if(pareto.value && Plotly) {
+    Plotly.newPlot(pareto.value, data1, layout, {responsive: true})
+  }
 }
 
 onMounted(async ()=> {
