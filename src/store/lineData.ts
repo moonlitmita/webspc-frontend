@@ -187,9 +187,27 @@ export const useLineStore=defineStore('line',{
             this.yData = res.data.all.map(({samples}) => samples)
             this.date = res.data.all.map(({add_date})=> add_date)
             this.testName = res.data.test_name
-            this.pValue = typeof res.data.p_value === 'string' && !isNaN(parseFloat(res.data.p_value)) && isFinite(parseFloat(res.data.p_value)) ? parseFloat(res.data.p_value).toFixed(2) : null
-            this.varianceBetween = typeof res.data.variance_between === 'string' && !isNaN(parseFloat(res.data.variance_between)) && isFinite(parseFloat(res.data.variance_between)) ? parseFloat(res.data.variance_between).toFixed(2) : null
-            this.varianceWithin = typeof res.data.variance_within === 'string' && !isNaN(parseFloat(res.data.variance_within)) && isFinite(parseFloat(res.data.variance_within)) ? parseFloat(res.data.variance_within).toFixed(2) : null
+            // 修正pValue的赋值逻辑，支持数值类型和字符串类型
+            if (res.data.p_value !== undefined && res.data.p_value !== null) {
+              const pValueNum = typeof res.data.p_value === 'string' ? parseFloat(res.data.p_value) : Number(res.data.p_value);
+              this.pValue = !isNaN(pValueNum) && isFinite(pValueNum) ? pValueNum.toFixed(3) : null;
+            } else {
+              this.pValue = null;
+            }
+            // 修正varianceBetween的赋值逻辑
+            if (res.data.variance_between !== undefined && res.data.variance_between !== null) {
+              const varianceBetweenNum = typeof res.data.variance_between === 'string' ? parseFloat(res.data.variance_between) : Number(res.data.variance_between);
+              this.varianceBetween = !isNaN(varianceBetweenNum) && isFinite(varianceBetweenNum) ? varianceBetweenNum.toFixed(3) : null;
+            } else {
+              this.varianceBetween = null;
+            }
+            // 修正varianceWithin的赋值逻辑
+            if (res.data.variance_within !== undefined && res.data.variance_within !== null) {
+              const varianceWithinNum = typeof res.data.variance_within === 'string' ? parseFloat(res.data.variance_within) : Number(res.data.variance_within);
+              this.varianceWithin = !isNaN(varianceWithinNum) && isFinite(varianceWithinNum) ? varianceWithinNum.toFixed(3) : null;
+            } else {
+              this.varianceWithin = null;
+            }
             if(res.data.all.length === 0) {
               ElMessage.warning('数据为空,请录入数据!')
               return

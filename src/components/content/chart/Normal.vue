@@ -6,12 +6,14 @@
 
 <script lang="ts" setup>
 import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import { useLineStore } from '../../../store/lineData'
+import { useMainStore } from '../../../store/index'
 import { getD2 } from '../../../utils/statistics'
 
 const lineStore = useLineStore()
+const mainStore = useMainStore()
 const normal = ref()
 let Plotly: PlotlyType | null = null
 const n = Number(lineStore.sampleSize)
@@ -154,16 +156,31 @@ const renderChart = async ()=> {
     ]
   }
   const config = { responsive: true }
-  Plotly.newPlot(normal.value, graphData, layout,config)
+  if (normal.value && Plotly) {
+    Plotly.newPlot(normal.value, graphData, layout, config)
+  }
 }
+
+// 组件卸载前的清理工作
+onBeforeUnmount(() => {
+  // 如果需要，可以在这里销毁plotly图表
+  if (Plotly && normal.value) {
+    try {
+      Plotly.purge(normal.value); // 清理plotly图表
+    } catch (e) {
+      console.warn('Error while purging plotly chart:', e);
+    }
+  }
+});
 
 onMounted(async ()=> {
   lineStore.loadData(true).then(async ()=> {
     await renderChart()
   })
-  watch(()=> lineStore.xBarMean.yMeans,
-    async (newvalues, oldValues)=> {
-      if(newvalues !== oldValues) {
+  watch(
+    ()=> [lineStore.xBarMean.yMeans],
+    async (newValues, oldValues)=> {
+      if(newValues[0] !== oldValues[0] && normal.value) {
         await renderChart()
       }
     }

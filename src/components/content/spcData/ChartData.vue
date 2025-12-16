@@ -25,24 +25,25 @@
           <el-button type="primary" v-if="showItem">+批量新增</el-button>
         </el-upload>
       </div>
-     <div class="filter">
-       <el-form :inline="true">
-        <el-form-item label="开始日期">
-          <el-date-picker v-model="startDate" type="date" placeholder="开始日期"></el-date-picker>
-        </el-form-item>
-        <el-form-item label="结束日期">
-          <el-date-picker v-model="endDate" type="date" placeholder = "结束日期"></el-date-picker>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="filterByDateRange">筛选</el-button>
-        </el-form-item>
-       </el-form>
-     </div>
+      <div class="filter">
+        <el-form :inline="true">
+          <el-form-item label="开始日期">
+            <el-date-picker v-model="startDate" type="date" placeholder="开始日期"></el-date-picker>
+          </el-form-item>
+          <el-form-item label="结束日期">
+            <el-date-picker v-model="endDate" type="date" placeholder = "结束日期"></el-date-picker>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="filterByDateRange">筛选</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
     </div>
     <div class="table-container">
       <div class="my-table">
         <div class="table-content">
-          <el-table :data="lineStore.chartDataList_pagination">
+          <el-table :data="lineStore.chartDataList_pagination" v-loading="loading">
             <el-table-column type="index" :index="getIndex" label="序号" width="60"></el-table-column>
             <el-table-column prop="samples" label="样本">
               <template v-slot:default="scope">
@@ -74,7 +75,6 @@
             @current-change="handleCurrentChange"
             />
           </div>
-          <slot name="page"></slot>
         </div>
       </div>
     </div>
@@ -124,6 +124,7 @@ interface formChartData {
  }
 const lineStore = useLineStore()
 const getAll = false
+const loading = ref(false)
 const startDate = ref<Date | string | null>(null)
 const endDate = ref<Date | string | null>(null)
 const fileList = ref<UploadUserFile[]>([])
@@ -154,24 +155,32 @@ const getIndex = (index: number) => {
 const handleSizeChange = (val: number) => {
   lineStore.config.pageSize = val
   lineStore.config.page = 1
-  lineStore.loadData(false)
+  lineStore.loadData(false).finally(() => {
+    loading.value = false
+  })
 }
 
 const handleCurrentChange = (val: number) => {
   lineStore.config.page = val
-  startDate.value = null
-  endDate.value = null
-  lineStore.loadData(false)
+  // startDate.value = null
+  // endDate.value = null
+  lineStore.loadData(false).finally(() => {
+    loading.value = false
+  })
 }
 
-lineStore.loadData(false)
+// lineStore.loadData(false)
 
 onMounted(()=>{
-  lineStore.loadData(false)
+  lineStore.loadData(false).finally(() => {
+    loading.value = false
+  })
  })
 
 const filterByDateRange = () => {
-  lineStore.loadData(false)
+  lineStore.loadData(false).finally(() => {
+    loading.value = false
+  })
 }
 
 startDate.value = lineStore.config.startDate
@@ -181,6 +190,14 @@ watchEffect(()=> {
   lineStore.config.startDate = startDate.value
   lineStore.config.endDate = endDate.value
 })
+
+const handleReset = () => {
+  startDate.value = ''
+  endDate.value = ''
+  lineStore.loadData(false).finally(() => {
+    loading.value = false
+  })
+}
 
 const handleCancel = () => {
   dialogVisible.value=false
@@ -222,7 +239,9 @@ const handleDelete = (row: Data)=> {
         message: '删除成功！',
         type: "success"
         })
-        lineStore.loadData(getAll)
+        lineStore.loadData(false).finally(() => {
+          loading.value = false
+        })
        })
     })
     .catch(() => {
@@ -317,14 +336,18 @@ const onSubmit = () => {
     if(valid) {
       if(action.value=='add') {
         lineStore.addHomeData(formChartData).then(()=> {
-          lineStore.loadData(getAll)
+          lineStore.loadData(false).finally(() => {
+            loading.value = false
+          })
         })
         chartDataForm.value?.resetFields()
         dialogVisible.value=false
       } else {
         let res = lineStore.editHomeData(formChartData)
         lineStore.editHomeData(formChartData).then(()=> {
-          lineStore.loadData(getAll)
+          lineStore.loadData(false).finally(() => {
+            loading.value = false
+          })
         })
         chartDataForm.value?.resetFields()
         dialogVisible.value=false
@@ -342,18 +365,19 @@ const onSubmit = () => {
 </script>
 <style lang='less' scoped>
 .data-container {
+  flex: 1;
   padding-top: 3px;
-  flex: 1 1 auto;
   display: flex;
-  flex-wrap: nowrap;
-  height: 100%;
-  width: 100%;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0; /* 重新添加，对于flex子项很重要 */
   .data-header{
     display:flex;
     flex-wrap: nowrap;
     height: 35px;
     justify-content:space-between;
+    flex-shrink: 0;
     .add {
       flex: 1;
     }
@@ -369,29 +393,35 @@ const onSubmit = () => {
     }
   }
   .table-container {
-    flex: 1 1 auto;
+    flex: 1; /* 更明确的flex属性 */
+    min-height: 0;
     display: flex;
     flex-direction: column;
     .my-table {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       .table-content {
-        display: grid;
-        grid-template-columns: auto;
-        grid-template-rows: auto;
+        flex-shrink: 1;
+        flex-grow: 1;
+        flex-basis: 0;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
         .sample-container {
+          flex-shrink: 1;
+          min-height: 0;
           display: flex;
           justify-content: space-between;
         }
       }
-   }
-    .pager {
-      display: flex;
-      justify-content: flex-start;
-      margin-top: 0px;
-      margin-left: 10px;
+      .pager {
+          height: 32px;
+          flex-shrink: 0;
+          background: #fff;
+      }
     }
   }
 }
-</style> 
+</style>

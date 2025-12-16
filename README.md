@@ -88,7 +88,7 @@ Allen，Jason老师的前端教程地址是：https://space.bilibili.com/1643315
 
 <img src="src/assets/images/donate.png" width="200" alt="微信打赏码">
 
-# 5.技术支持：
+# 5.技术服务：
 
 作者：valleyfo
 
@@ -98,7 +98,7 @@ QQ: 271989251
 
 Weixin: valleyfo
 
-备注：技术支持包括但不限于
+备注：技术服务包括但不限于
     定制业务开发
     项目部署
     程序使用讲解，代码讲解，SPC理论培训。

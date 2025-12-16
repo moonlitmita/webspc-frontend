@@ -5,17 +5,18 @@
 */
 
 <template>
-  <div ref="rChart">
+  <div class="r-chart-container">
+    <div ref="rChart" class="chart"></div>
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, watch, ref } from 'vue'
+import { onMounted, onBeforeUnmount, watch, ref, nextTick } from 'vue'
 import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
 import type { Outlier } from '../../../store/lineData'
 import { useMainStore } from '../../../store'
 import { getD3, getD4 } from '../../../utils/statistics'
-import { isOutsideControlLimits, isConsecutivePointsSameSide, isConsecutiveIncreasingOrDecreasingPoints, isAlternatingPoints, 
+import { isOutsideControlLimits, isConsecutivePointsSameSide, isConsecutiveIncreasingOrDecreasingPoints, isAlternatingPoints,
  } from '../../../utils/rules'
 
 const lineStore = useLineStore()
@@ -27,7 +28,7 @@ const renderChart = async () => {
   if (!Plotly) {
     Plotly = await loadPlotly();
   }
-  
+
 const sampleSize = lineStore.sampleSize
 const mean = lineStore.rBar.rBar
 const upperLimit = getD4(sampleSize)*lineStore.rBar.rBar
@@ -63,7 +64,7 @@ let rUCLTrace = {
     dash: 'dash',
     width: 1
   }
-} as any 
+} as any
 
 let rLCLTrace = {
   x: lineStore.xData,
@@ -92,7 +93,9 @@ let Centre = {
 } as any
 
 let data = [Data1,rUCLTrace,rLCLTrace,Centre]
-
+const chartWindow = 150
+const start = lineStore.xData[lineStore.xData.length - chartWindow]
+const end = lineStore.xData[lineStore.xData.length - 1]
 let layout: any = {
   autosize: true,
   legend: {
@@ -111,7 +114,7 @@ let layout: any = {
  },
  xaxis: {
    zeroline: false,
-   range: [0, 151]
+   range: [start, end]
  },
  yaxis: {
    autorange: true,
@@ -125,13 +128,15 @@ let layout: any = {
    color:'dark'
  }
 }
-Plotly.newPlot(rChart.value, data, layout, {responsive: true})
+if (rChart.value && Plotly) {
+  Plotly.react(rChart.value, data, layout, {responsive: true})
+}
 
 const selectPoints = (array: number[]) => {
   lineStore.cleanrOutliers()
   const result_1 = isOutsideControlLimits(array,upperLimit,lowerLimit)
   if (result_1.isOutside) {
-    result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) => 
+    result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) =>
       lineStore.rOutliers.push(point)
     )
   }
@@ -189,32 +194,68 @@ const outlierTrace = {
     symbol: 'cross'
   }
 }
-Plotly.addTraces(rChart.value, [outlierTrace]);
+if (rChart.value && Plotly) {
+  Plotly.addTraces(rChart.value, [outlierTrace]);
+}
 }
 function handleResize() {
-  if (Plotly) {
+  if (Plotly && rChart.value) {
     Plotly.Plots.resize(rChart.value)
   }
 }
+
+// 组件卸载前的清理工作
+onBeforeUnmount(() => {
+  // 如果需要，可以在这里销毁plotly图表
+  if (Plotly && rChart.value) {
+    try {
+      Plotly.purge(rChart.value); // 清理plotly图表
+    } catch (e) {
+      console.warn('Error while purging plotly chart:', e);
+    }
+  }
+  // 清理自定义事件监听器
+  window.removeEventListener('aiPanelTransitionEnd', handleResize);
+});
+
 onMounted(async ()=>{
   const getAll = true
   lineStore.loadData(getAll).then(async ()=> {
     await renderChart()
   })
   watch(
-    ()=> [ lineStore.rBar.rValue, mainStore.isCollapse, mainStore.aiVisible ],
+    ()=> [ lineStore.rBar.rValue, mainStore.isCollapse ],
     async (newValues,oldValues)=> {
       if(newValues[0] !== oldValues[0]) {
-        await renderChart()
+        if (rChart.value) {  // 确保DOM元素存在
+          await renderChart()
+        }
       }
       if(newValues[1] !== oldValues[1]) {
-        handleResize()
-      }
-      if(newValues[2] !== oldValues[2]) {
-        handleResize()
+        nextTick(() => {
+          handleResize()
+        })
       }
     }
   )
+
+  // 监听AI面板动画完成事件
+  window.addEventListener('aiPanelTransitionEnd', handleResize);
 })
 
 </script>
+<style scoped>
+.r-chart-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.chart {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+</style>

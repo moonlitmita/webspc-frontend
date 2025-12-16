@@ -24,10 +24,6 @@ interface Options<T = any> {
   responseType?: 'stream' | 'json' | 'arraybuffer' | 'blob' 
 }
 
-// const service = axios.create({
-//   baseURL: config.baseApi
-// })
-
 /* ========== 工厂：创建带统一拦截器的实例 ========== */
 function createService(baseURL: string): AxiosInstance {
   const ins = axios.create({ baseURL })

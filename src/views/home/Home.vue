@@ -14,28 +14,46 @@
           </el-text>
         </el-col>
       </el-row>
-      <el-row>
-        <el-col :span="8">
+      <el-row :gutter="10" style="margin-bottom: 10px;">
+        <el-col :xs="24" :sm="8">
           <el-text class="mx-1" type="primary" truncated>
             产品：{{ product }}
           </el-text>
         </el-col>
-        <el-col :span="8">
+        <el-col :xs="14" :sm="8">
           <el-text class="mx-1" type="primary" truncated>
             上公差限：{{ uSpecLimit }}
           </el-text>
         </el-col>
+        <el-col :xs="10" :sm="8" style="display: flex; align-items: center; justify-content: flex-start;">
+          <template v-if="lineStore.dataCollectionType === '自动采集'">
+            <el-text class="mx-1" type="primary" style="margin-right: 8px;">实时数据流</el-text>
+            <el-switch
+              :model-value="mainStore.isRealTimeMode"
+              @update:model-value="handleRealTimeModeChange"
+              active-text="On"
+              inactive-text="Off"
+              size="small"
+            />
+          </template>
+          <template v-else>
+            <el-text class="mx-1" type="primary" style="visibility: hidden;">实时数据流</el-text>
+          </template>
+        </el-col>
       </el-row>
-      <el-row>
-        <el-col :span="8">
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="8">
           <el-text class="mx-1" type="primary" truncated>
             制程：{{ process }}
           </el-text>
         </el-col>
-        <el-col :span="8">
+        <el-col :xs="14" :sm="8">
           <el-text class="mx-1" type="primary" truncated>
             下公差限：{{ lSpectLimit }}
           </el-text>
+        </el-col>
+        <el-col :xs="10" :sm="8" style="display: flex; align-items: center; justify-content: flex-start;">
+          <el-text class="mx-1" type="primary" style="visibility: hidden;">实时数据流</el-text>
         </el-col>
       </el-row>
     </div>
@@ -59,7 +77,7 @@
   </div>
 </template>
 <script lang = 'ts' setup>
-import { ref,defineAsyncComponent,shallowRef, onMounted } from 'vue'
+import { ref,defineAsyncComponent,shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import { useMainStore } from '../../store';
 import {useLineStore} from '../../store/lineData'
 import { useProjectStore } from '../../store/project'
@@ -120,6 +138,12 @@ const setData = ()=> {
   project.value = lineStore.projectName
   uSpecLimit.value = lineStore.USL
   lSpectLimit.value = lineStore.LSL
+
+  // 如果不是自动采集，则禁用实时模式
+  if (lineStore.dataCollectionType !== '自动采集') {
+    mainStore.isRealTimeMode = false;
+    stopUpdateData();
+  }
 }
 
 const tabData = shallowRef([
@@ -138,11 +162,78 @@ const tabData = shallowRef([
 const changeTab = ()=> {
 }
 
+let updateInterval: number | null = null
+const startUpdateData = () => {
+  // 先停止任何现有的定时器
+  stopUpdateData()
+  updateInterval = window.setInterval(() => {
+    lineStore.loadData(true)
+  }, 1000)
+}
+
+const stopUpdateData = () => {
+  if(updateInterval) {
+    clearInterval(updateInterval)
+    updateInterval = null
+  }
+}
+
+//以下暂时不用
+// const toggleAllRealTimeMode = () => {
+//   const newValue = !mainStore.isRealTimeMode;
+//   mainStore.isRealTimeMode = newValue;
+//   if (newValue) {
+//     startUpdateData()
+//   } else {
+//     stopUpdateData()
+//   }
+// }
+
+const handleRealTimeModeChange = (value: boolean) => {
+  // 更新 store 中的实时模式状态
+  mainStore.isRealTimeMode = value
+
+  if (value) {
+    startUpdateData()
+  } else {
+    stopUpdateData()
+  }
+}
+
+
+
 // 在组件挂载时检查项目数据
 onMounted(async () => {
   const hasLineData = await checkLineData()
   if (hasLineData) {
     setData()
+
+    // 如果不是自动采集，则禁用实时模式
+    if (lineStore.dataCollectionType !== '自动采集') {
+      mainStore.isRealTimeMode = false;
+      stopUpdateData();
+    } else {
+      // 检查刷新后是否需要重新启动实时模式
+      if (mainStore.isRealTimeMode) {
+        startUpdateData()
+      }
+    }
+  }
+})
+
+// 监听 dataCollectionType 变化，如果不是自动采集，则禁用实时模式
+watch(() => lineStore.dataCollectionType, (newVal) => {
+  if (newVal !== '自动采集') {
+    mainStore.isRealTimeMode = false;
+    stopUpdateData();
+  }
+});
+
+// 在组件卸载时清理定时器
+onUnmounted(() => {
+  if(updateInterval) {
+    clearInterval(updateInterval)
+    updateInterval = null
   }
 })
 </script>
@@ -154,6 +245,7 @@ onMounted(async () => {
 .spc-container {
   flex: 1 1 auto;
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -165,29 +257,26 @@ onMounted(async () => {
   }
   :deep(.el-tabs__content) {
     flex: 1;
-    display: flex;
     .el-tab-pane {
-      flex: 1;
-      display: flex;
-    }
+      height: 100%;
+    } 
   }
+  
   .tab-content {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
+    height: 100%;
     .my-tabs {
-      flex: 1 1 auto;
-      display: flex; 
-      flex-direction: column;
-    --el-tabs-header-height: 30px;
-    .el-tabs__content {
-      display: flex;
-      flex-direction: row;
-      .el-tab-pane {
+      height: 100%;
+      --el-tabs-header-height: 30px;
+      :deep(.el-tabs__content) {
         flex: 1;
+      } 
+      .el-tabs__content {
+        display: flex;
+        .el-tab-pane {
+          flex: 1;
+        }
       }
-    }
-    }
+    } 
     .info {
       position: sticky;
       top: 0;

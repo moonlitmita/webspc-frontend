@@ -14,6 +14,8 @@ Front-end business code address: https://gitee.com/valleyfo/webspc-frontend
 
 General back-end business code address: https://gitee.com/valleyfo/webspc-backend
 
+AI back-end business code address: https://gitee.com/valleyfo/webspc-ai
+
 # Project Architecture
 
 ## Front-end:

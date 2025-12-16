@@ -20,35 +20,35 @@ interface ProjectConfig {
   }
 }
 export const useProjectStore = defineStore('project', {
-state: (): ProjectConfig => {
-  return {
-    projectList: [],
-    all: [],
-    config: {
-      total: 0,
-      page:1,
-      pageSize: 5,
-      searchInfo: ''
+  state: (): ProjectConfig => {
+    return {
+      projectList: [],
+      all: [],
+      config: {
+        total: 0,
+        page:1,
+        pageSize: 5,
+        searchInfo: ''
+      }
     }
-  }
-},
-getters: {},
-actions: {
-  async getProjectData(): Promise<void> { 
-    let res: ProjectResponse = await api.getProjectData(this.config)
-    this.config.total = res.data.total ?? null
-    this.projectList= res.data.list || []
-    this.all = res.data.all || []
   },
-  async addProject(val: any) {
-    await api.addProject(val)
+  getters: {},
+  actions: {
+    async getProjectData(): Promise<void> { 
+      let res: ProjectResponse = await api.getProjectData(this.config)
+      this.config.total = res.data.total ?? null
+      this.projectList= res.data.list || []
+      this.all = res.data.all || []
+    },
+    async addProject(val: any) {
+      await api.addProject(val)
+    },
+    async editProject(val: any) {
+      await api.editProject(val)
+    },
+    async deleteProject(val: any) {
+      await api.deleteProject(val)
+    }
   },
-  async editProject(val: any) {
-    await api.editProject(val)
-  },
-  async deleteProject(val: any) {
-    await api.deleteProject(val)
-  }
-},
-persist: true
+  persist: true
 })
