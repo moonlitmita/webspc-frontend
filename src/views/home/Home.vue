@@ -80,13 +80,11 @@
 import { ref,defineAsyncComponent,shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import { useMainStore } from '../../store';
 import {useLineStore} from '../../store/lineData'
-import { useProjectStore } from '../../store/project'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
   
 const mainStore = useMainStore()
 const lineStore = useLineStore()
-const projectStore = useProjectStore()
 const router = useRouter()
 const process = ref()
 const product = ref()
@@ -109,7 +107,7 @@ const checkLineData = async () => {
         type: 'warning'
       })
       router.push('/project')
-      mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
+      mainStore.currentMenu = {path: "/project", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
       return false
     } else {
       // 如果是从Project.vue跳转过来的，确保cList已正确设置(暂时用不到)
@@ -127,7 +125,7 @@ const checkLineData = async () => {
       type: 'warning'
     })
     router.push('/project')
-    mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
+    mainStore.currentMenu = {path: "/project", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
     return false
   }
 }
@@ -192,7 +190,6 @@ const stopUpdateData = () => {
 const handleRealTimeModeChange = (value: boolean) => {
   // 更新 store 中的实时模式状态
   mainStore.isRealTimeMode = value
-
   if (value) {
     startUpdateData()
   } else {
@@ -207,7 +204,6 @@ onMounted(async () => {
   const hasLineData = await checkLineData()
   if (hasLineData) {
     setData()
-
     // 如果不是自动采集，则禁用实时模式
     if (lineStore.dataCollectionType !== '自动采集') {
       mainStore.isRealTimeMode = false;
@@ -224,10 +220,10 @@ onMounted(async () => {
 // 监听 dataCollectionType 变化，如果不是自动采集，则禁用实时模式
 watch(() => lineStore.dataCollectionType, (newVal) => {
   if (newVal !== '自动采集') {
-    mainStore.isRealTimeMode = false;
-    stopUpdateData();
+    mainStore.isRealTimeMode = false
+    stopUpdateData()
   }
-});
+})
 
 // 在组件卸载时清理定时器
 onUnmounted(() => {

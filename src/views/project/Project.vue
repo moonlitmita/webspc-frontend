@@ -226,11 +226,13 @@ import router from '../../router/router';
 import { useLineStore } from '../../store/lineData';
 import { useDepStore } from '../../store/department';
 import { useProcessStore } from '../../store/process';
+import { useMainStore } from '../../store/index'
 
 const projectStore = useProjectStore()
 const lineStore = useLineStore()
 const depStore = useDepStore()
 const processStore = useProcessStore()
+const mainStore = useMainStore()
 
 const projectForm: Ref<typeof ElForm | null> = ref(null)
 const loading = ref(false)
@@ -519,6 +521,7 @@ const handleJump = (row: Project) => {
   router.push({
     path: '/home'
   })
+  mainStore.currentMenu = null
 }
 
 const handleEdit = (row: Project) => {

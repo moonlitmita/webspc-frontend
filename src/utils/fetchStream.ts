@@ -6,6 +6,7 @@
 
 import { ElMessage } from 'element-plus'
 import config from '@/config'
+import router from '../router/router'
 
 const NETWORK_ERROR = '网络异常，请稍后再试'
 
@@ -25,7 +26,7 @@ interface StreamOptions {
  * 原生 fetch 封装，仅用于流式接口
  * 返回原生的 Response，调用方自己读 body
  */
-export async function fetchStream(options: StreamOptions): Promise<Response> {
+export async function fetchStream(options: StreamOptions): Promise<Response | null> {
   const token = localStorage.getItem('token')
   const headers: Record<string, string> = {
     ...options.headers,
@@ -38,6 +39,13 @@ export async function fetchStream(options: StreamOptions): Promise<Response> {
     headers,
     body: options.data ? JSON.stringify(options.data) : undefined
   })
+  
+  /* 401 统一处理 */
+  if (res.status === 401) {
+    localStorage.removeItem('token')
+    router.replace('/login')
+    return null /* 让调用链结束 */
+  }
 
   /* 统一 HTTP 异常处理 */
   if (!res.ok) {

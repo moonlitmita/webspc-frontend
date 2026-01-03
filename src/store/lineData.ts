@@ -176,6 +176,7 @@ export const useLineStore=defineStore('line',{
     async loadData(getAll: boolean): Promise<void> {
       try {
         const res: DataResponse = await api.getHomeData({...this.config, getAll:getAll}) 
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if(res.data) {
           if(getAll) {
             if (!res.data.all) {

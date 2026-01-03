@@ -36,6 +36,7 @@ export const useProcessStore = defineStore('process', {
   actions: {
     async getProcessData(getAll: Boolean):Promise<void> { 
       let res: ProcessResponse = await api.getProcessData({...this.config, getAll: getAll})
+      if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
       if(getAll) {
         this.processList_all = res.data.all || []
       } else {

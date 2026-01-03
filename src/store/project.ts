@@ -36,6 +36,7 @@ export const useProjectStore = defineStore('project', {
   actions: {
     async getProjectData(): Promise<void> { 
       let res: ProjectResponse = await api.getProjectData(this.config)
+      if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
       this.config.total = res.data.total ?? null
       this.projectList= res.data.list || []
       this.all = res.data.all || []

@@ -33,6 +33,7 @@ export const useUserStore = defineStore('user', {
   actions: {
     async getUserData(): Promise<void> { 
       let res: UserResponse = await api.getUserData(this.config)
+      if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
       this.userList = res.data.list.map((item: User)=>{
         item.gender = item.gender === "0" ? '女' : '男'
         item.is_super_user = item.is_super_user === "True" ? "是" : "否"
