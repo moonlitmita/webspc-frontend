@@ -9,6 +9,8 @@ import api from '../api/mainApi'
 import type { Data, DataResponse } from '../api/mainApi'
 import { defineAsyncComponent, markRaw } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useAlarmStore } from './alarm'
+import { strToUnix } from '@/utils/commonTools'
 
 interface Component {
   label: string
@@ -18,6 +20,7 @@ export interface Outlier {
     x: number;
     y: number;
     message: string;
+    add_date: string;
   }
 interface DataConfig {
   chartDataList_pagination: DataResponse['data']['list']
@@ -59,6 +62,8 @@ interface DataConfig {
   mrOutliers: Outlier[]
   rOutliers: Outlier[]
   xbarOutliers: Outlier[]
+  newOutliers: Outlier[]
+  lastAddedTimestamp: string
 }
 
 export const useLineStore=defineStore('line',{
@@ -102,7 +107,9 @@ export const useLineStore=defineStore('line',{
       iOutliers: [],
       mrOutliers: [],
       rOutliers: [],
-      xbarOutliers: []
+      xbarOutliers: [],
+      newOutliers: [],
+      lastAddedTimestamp: ""
     }
   },
   getters: {
@@ -176,6 +183,7 @@ export const useLineStore=defineStore('line',{
     async loadData(getAll: boolean): Promise<void> {
       try {
         const res: DataResponse = await api.getHomeData({...this.config, getAll:getAll}) 
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if(res.data) {
           if(getAll) {
             if (!res.data.all) {
@@ -226,6 +234,10 @@ export const useLineStore=defineStore('line',{
     async addHomeData(val: any) {
       try {
         const res = await api.addHomeData(val)
+
+        // After adding new data, we need to reload data to get the updated dataset
+        // and potentially identify new outliers in the recently added data
+        // For now, we'll just return the response
         return res.data
       } catch (error) {
         ElMessage.error('请求失败！')
@@ -267,6 +279,12 @@ export const useLineStore=defineStore('line',{
     cleanxbarOutliers() {
       this.xbarOutliers = []
     },
+    cleanNewOutliers() {
+      this.newOutliers = []
+    },
+    setLastAddedTimestamp() {
+      this.lastAddedTimestamp = this.date[this.date.length - 1]
+    },
     updateiCL(upperLimit: number, lowerLimit: number) {
       this.iUCL = upperLimit
       this.iLCL = lowerLimit
@@ -282,6 +300,58 @@ export const useLineStore=defineStore('line',{
     updatexbarCL(upperLimit: number, lowerLimit: number) {
       this.xbarUCL = upperLimit
       this.xbarLCL = lowerLimit
+    },
+    // 手动触发告警逻辑
+    async triggerAlarm() {
+
+      const alarmStore = useAlarmStore()
+
+      // 获取保存的最后时间戳
+      const lastSavedTimestamp = strToUnix(this.lastAddedTimestamp)
+
+      if (lastSavedTimestamp) {
+        // Filter all outlier arrays to only include outliers with timestamps greater than the last saved timestamp
+        this.newOutliers = [
+          ...this.iOutliers.filter(outlier => strToUnix(outlier.add_date) > lastSavedTimestamp),
+          ...this.mrOutliers.filter(outlier => strToUnix(outlier.add_date) >= lastSavedTimestamp),
+          ...this.rOutliers.filter(outlier => strToUnix(outlier.add_date) > lastSavedTimestamp),
+          ...this.xbarOutliers.filter(outlier => strToUnix(outlier.add_date) > lastSavedTimestamp)
+        ]
+      } else {
+        this.newOutliers = []
+        this.setLastAddedTimestamp()
+      }
+
+      // 如果没有检测到异常数据点，提示用户
+      if (this.newOutliers.length === 0) {
+        if (this.dataCollectionType === "手动采集") {
+          ElMessage.info('当前没有检测到新增异常数据点')
+        } 
+        return
+      }
+
+      // 构建告警数据
+      const alarmData = {
+        title: "SPC数据异常告警",
+        content: `检测到${this.newOutliers.length}个新增异常数据点，需要进行分析处理`,
+        outliers: this.newOutliers,
+        project: this.projectName,
+        process: this.process,
+        product: this.product,
+        spcType: this.spcType,
+        additional_info: {
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      // 使用告警store来处理分析
+      await alarmStore.analyzeAlarm(alarmData)
+
+      // 清空newOutliers
+      this.cleanNewOutliers()
+
+      // 设置新的最后新增时间戳
+      this.setLastAddedTimestamp()
     }
   },
   persist: true

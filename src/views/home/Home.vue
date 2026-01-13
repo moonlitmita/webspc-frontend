@@ -15,19 +15,19 @@
         </el-col>
       </el-row>
       <el-row :gutter="10" style="margin-bottom: 10px;">
-        <el-col :xs="24" :sm="8">
+        <el-col :xs="6" :sm="8">
           <el-text class="mx-1" type="primary" truncated>
             产品：{{ product }}
           </el-text>
         </el-col>
-        <el-col :xs="14" :sm="8">
+        <el-col :xs="6" :sm="4">
           <el-text class="mx-1" type="primary" truncated>
             上公差限：{{ uSpecLimit }}
           </el-text>
         </el-col>
-        <el-col :xs="10" :sm="8" style="display: flex; align-items: center; justify-content: flex-start;">
+        <el-col :xs="6" :sm="8" style="display: flex; align-items: center; justify-content: flex-end;">
           <template v-if="lineStore.dataCollectionType === '自动采集'">
-            <el-text class="mx-1" type="primary" style="margin-right: 8px;">实时数据流</el-text>
+            <el-text class="mx-1" type="primary" style="margin-right: 8px;">LLM监控&实时数据流</el-text>
             <el-switch
               :model-value="mainStore.isRealTimeMode"
               @update:model-value="handleRealTimeModeChange"
@@ -36,8 +36,17 @@
               size="small"
             />
           </template>
-          <template v-else>
-            <el-text class="mx-1" type="primary" style="visibility: hidden;">实时数据流</el-text>
+        </el-col>
+        <el-col :xs="6" :sm="4" class="btn-wrapper">
+          <template v-if="lineStore.dataCollectionType === '手动采集'">
+            <el-button
+              type="primary"
+              size="large"
+              @click="lineStore.triggerAlarm"
+              style="margin-right: 8px;"
+            >
+              LLM告警
+            </el-button>
           </template>
         </el-col>
       </el-row>
@@ -47,14 +56,12 @@
             制程：{{ process }}
           </el-text>
         </el-col>
-        <el-col :xs="14" :sm="8">
+        <el-col :xs="14" :sm="4">
           <el-text class="mx-1" type="primary" truncated>
             下公差限：{{ lSpectLimit }}
           </el-text>
         </el-col>
-        <el-col :xs="10" :sm="8" style="display: flex; align-items: center; justify-content: flex-start;">
-          <el-text class="mx-1" type="primary" style="visibility: hidden;">实时数据流</el-text>
-        </el-col>
+        
       </el-row>
     </div>
     <div class="tab-content">
@@ -79,14 +86,13 @@
 <script lang = 'ts' setup>
 import { ref,defineAsyncComponent,shallowRef, onMounted, onUnmounted, watch } from 'vue'
 import { useMainStore } from '../../store';
-import {useLineStore} from '../../store/lineData'
-import { useProjectStore } from '../../store/project'
+import { useLineStore } from '../../store/lineData'
+import { useAlarmStore } from '../../store/alarm'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-  
+
 const mainStore = useMainStore()
 const lineStore = useLineStore()
-const projectStore = useProjectStore()
 const router = useRouter()
 const process = ref()
 const product = ref()
@@ -109,7 +115,7 @@ const checkLineData = async () => {
         type: 'warning'
       })
       router.push('/project')
-      mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
+      mainStore.currentMenu = {path: "/project", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
       return false
     } else {
       // 如果是从Project.vue跳转过来的，确保cList已正确设置(暂时用不到)
@@ -127,7 +133,7 @@ const checkLineData = async () => {
       type: 'warning'
     })
     router.push('/project')
-    mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
+    mainStore.currentMenu = {path: "/project", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
     return false
   }
 }
@@ -163,13 +169,6 @@ const changeTab = ()=> {
 }
 
 let updateInterval: number | null = null
-const startUpdateData = () => {
-  // 先停止任何现有的定时器
-  stopUpdateData()
-  updateInterval = window.setInterval(() => {
-    lineStore.loadData(true)
-  }, 1000)
-}
 
 const stopUpdateData = () => {
   if(updateInterval) {
@@ -177,6 +176,17 @@ const stopUpdateData = () => {
     updateInterval = null
   }
 }
+
+const startUpdateData = () => {
+  // 先停止任何现有的定时器
+  stopUpdateData()
+  updateInterval = window.setInterval(() => {
+    lineStore.loadData(true)
+    lineStore.triggerAlarm()
+  }, 1000)
+}
+
+
 
 //以下暂时不用
 // const toggleAllRealTimeMode = () => {
@@ -192,7 +202,6 @@ const stopUpdateData = () => {
 const handleRealTimeModeChange = (value: boolean) => {
   // 更新 store 中的实时模式状态
   mainStore.isRealTimeMode = value
-
   if (value) {
     startUpdateData()
   } else {
@@ -200,14 +209,11 @@ const handleRealTimeModeChange = (value: boolean) => {
   }
 }
 
-
-
 // 在组件挂载时检查项目数据
 onMounted(async () => {
   const hasLineData = await checkLineData()
   if (hasLineData) {
     setData()
-
     // 如果不是自动采集，则禁用实时模式
     if (lineStore.dataCollectionType !== '自动采集') {
       mainStore.isRealTimeMode = false;
@@ -224,10 +230,10 @@ onMounted(async () => {
 // 监听 dataCollectionType 变化，如果不是自动采集，则禁用实时模式
 watch(() => lineStore.dataCollectionType, (newVal) => {
   if (newVal !== '自动采集') {
-    mainStore.isRealTimeMode = false;
-    stopUpdateData();
+    mainStore.isRealTimeMode = false
+    stopUpdateData()
   }
-});
+})
 
 // 在组件卸载时清理定时器
 onUnmounted(() => {
@@ -250,7 +256,14 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: stretch;
   .info {
-    padding-top: 5px;
+    /* 1. 减小按钮上下内边距 → 文字离上下边缘更近 */
+    .btn-wrapper :deep(.el-button--large) {
+      padding-top: 6px;
+      padding-bottom: 6px;
+      padding-left: 6px;
+      padding-right: 6px;
+      height: auto;   /* 让高度随内容走 */
+    }
   }
   :deep(.el-tabs__header) {
     margin: 0;
@@ -277,11 +290,6 @@ onUnmounted(() => {
         }
       }
     } 
-    .info {
-      position: sticky;
-      top: 0;
-      flex: 1 1 auto;
-    }
   }
 }
 </style>

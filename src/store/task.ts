@@ -49,6 +49,7 @@ export const useTaskStore = defineStore<'task', TaskConfig, {}, TaskActions>('ta
         searchInfo: this.config.searchInfo
       }
       const res: TaskResponse = await api.getTasks(params)
+      if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
       // 优先使用新的 task_list 字段，如果不存在则回退到 tasks_list
       this.taskList = res.data.task_list || res.data.tasks_list || []
       this.config.total = res.data.total || this.taskList.length

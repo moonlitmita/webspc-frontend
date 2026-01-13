@@ -8,13 +8,13 @@
 import { onMounted, onBeforeUnmount, onUnmounted, watch, ref, nextTick} from 'vue'
 import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
-import type { Outlier }  from '../../../store/lineData'
 import { useMainStore } from '../../../store'
 import { storeToRefs } from 'pinia'
 import { isOutsideControlLimits, isConsecutivePointsSameSide, isConsecutiveIncreasingOrDecreasingPoints, isAlternatingPoints,
   isOutsideControlZoneB, isOutsideControlZoneC, isInsideControlZoneC, isOutsideControlZoneCandBothSides
 } from '../../../utils/rules'
 import { calculateSampleStandardDeviation, cp_pp, cpk_ppk, getD2 } from '../../../utils/statistics'
+import { buildOutlierHovertext } from '../../../utils/outlierHover'
 
 const lineStore = useLineStore()
 const mainStore = useMainStore()
@@ -207,13 +207,13 @@ Cpk: ${cpk.value}
     lineStore.selectedRules.forEach(check => {
       switch(check) {
         case 'isOutsideControlLimits':
-          const result_1 = isOutsideControlLimits(array, upperLimit.value, lowerLimit.value)
+          const result_1 = isOutsideControlLimits(array, upperLimit.value, lowerLimit.value, lineStore.date)
           if (result_1.isOutside) {
-            result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) => lineStore.iOutliers.push(point)
+            result_1.outsidePoints.forEach(point => lineStore.iOutliers.push(point)
           )}
           break
         case 'isConsecutivePointsSameSide':
-          const result_2 = isConsecutivePointsSameSide(array,mean.value)
+          const result_2 = isConsecutivePointsSameSide(array,mean.value, lineStore.date)
           if (result_2.sameSide) {
             result_2.segments.forEach(segment => {
               segment.forEach(point=> {
@@ -223,7 +223,7 @@ Cpk: ${cpk.value}
           }
           break
         case 'isConsecutiveIncreasingOrDecreasingPoints':
-          const result_3 = isConsecutiveIncreasingOrDecreasingPoints(array)
+          const result_3 = isConsecutiveIncreasingOrDecreasingPoints(array, lineStore.date)
           if (result_3.increasingOrDecreasing) {
             result_3.segments.forEach(segment => {
               segment.forEach(point=> {
@@ -233,7 +233,7 @@ Cpk: ${cpk.value}
           }
           break
         case 'isAlternatingPoints':
-          const result_4 = isAlternatingPoints(array)
+          const result_4 = isAlternatingPoints(array, lineStore.date)
           if (result_4.alternating) {
             result_4.segments.forEach(segment => {
               segment.forEach(point=> {
@@ -243,7 +243,7 @@ Cpk: ${cpk.value}
           }
           break
         case 'isOutsideControlZoneB':
-          const result_5 = isOutsideControlZoneB(array, mean.value, sigma_group.value)
+          const result_5 = isOutsideControlZoneB(array, mean.value, sigma_group.value, lineStore.date)
           if (result_5.outsideZoneB) {
             result_5.segments.forEach(point => {
               lineStore.iOutliers.push(point)
@@ -251,7 +251,7 @@ Cpk: ${cpk.value}
           }
           break
         case 'isOutsideControlZoneC':
-          const result_6 = isOutsideControlZoneC(array, mean.value, sigma_group.value)
+          const result_6 = isOutsideControlZoneC(array, mean.value, sigma_group.value, lineStore.date)
           if (result_6.outsideZoneC) {
             result_6.segments.forEach(point => {
               lineStore.iOutliers.push(point)
@@ -259,7 +259,7 @@ Cpk: ${cpk.value}
           }
           break
         case 'isInsideControlZoneC':
-          const result_7 = isInsideControlZoneC(array, mean.value, sigma_group.value)
+          const result_7 = isInsideControlZoneC(array, mean.value, sigma_group.value, lineStore.date)
           if (result_7.insideZoneC) {
             result_7.segments.forEach(point => {
               lineStore.iOutliers.push(point)
@@ -267,7 +267,7 @@ Cpk: ${cpk.value}
           }
           break
         case 'isOutsideControlZoneCandBothSides':
-          const result_8 = isOutsideControlZoneCandBothSides(array, mean.value, sigma_group.value)
+          const result_8 = isOutsideControlZoneCandBothSides(array, mean.value, sigma_group.value, lineStore.date)
           if (result_8.outsideZoneC) {
             result_8.segments.forEach(point => {
               lineStore.iOutliers.push(point)
@@ -279,22 +279,8 @@ Cpk: ${cpk.value}
   }
 
   selectPoints(lineStore.xBarMean.yMeans)
-  const pointMessages = new Map<string, string[]>()
-  function addPoint(point: Outlier): void {
-    const key = `${point.x}_${point.y}`;
-    if (pointMessages.has(key)) {
-      pointMessages.get(key)?.push(point.message)
-    } else {
-      pointMessages.set(key, [point.message])
-    }
-  }
-  for(const point of lineStore.iOutliers) {
-    addPoint(point)
-  }
-  const hovertext = lineStore.iOutliers.map((point) => {
-    const key = `${point.x}_${point.y}`
-    return pointMessages.get(key)?.join('<br>') || ''
-  })
+
+  const hovertext = buildOutlierHovertext(lineStore.iOutliers)
   const outlierTrace = {
     x: lineStore.iOutliers.map(outlier => outlier.x),
     y: lineStore.iOutliers.map(outlier => outlier.y),

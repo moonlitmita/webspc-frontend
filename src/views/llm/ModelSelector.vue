@@ -129,7 +129,6 @@ const handleApply = async () => {
       }
     }
   } catch (error) {
-    console.error('切换模型时发生错误:', error)
     ElMessage.error('切换模型时发生错误')
     // 如果切换失败，重置选择器为当前模型
     if (modelStore.currentModel) {
@@ -143,19 +142,20 @@ const handleApply = async () => {
 onMounted(async () => {
   // 先获取可用模型列表
   // await modelStore.fetchAvailableModels()
-  await modelStore.fetchProviders()
+  modelStore.fetchProviders()
   
   // 再获取当前模型
-  await modelStore.fetchCurrentModel()
+  modelStore.fetchCurrentModel().then(() => {
+    if (modelStore.currentModel) {
+      provider.value = modelStore.currentProvider || ''
+      model_id.value = modelStore.currentModel.id
+    }
+  })
   
   // 获取模型配置
-  await modelStore.fetchModelConfigs()
+  modelStore.fetchModelConfigs()
   if (modelStore.currentProvider) {
-    await modelStore.fetchModelsbyProvider(modelStore.currentProvider)
-  }
-  if (modelStore.currentModel) {
-    provider.value = modelStore.currentProvider || ''
-    model_id.value = modelStore.currentModel.id
+    modelStore.fetchModelsbyProvider(modelStore.currentProvider)
   }
 })
 
@@ -177,7 +177,6 @@ async function saveConfigs() {
     modelStore.configs = newConfigs
     // 3. 调用后端保存
     const result = await modelStore.updateModelConfigs()
-    console.log('modelResult', result)
     if (result.success) {
       ElMessage.success(result.message)
       editing.value = false

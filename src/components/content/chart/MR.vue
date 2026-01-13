@@ -13,11 +13,11 @@
 import { onMounted, onBeforeUnmount, onUnmounted, watch, ref, nextTick} from 'vue'
 import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
-import type { Outlier } from '../../../store/lineData'
 import { useMainStore } from '../../../store'
 import { isOutsideControlLimits, isConsecutivePointsSameSide, isConsecutiveIncreasingOrDecreasingPoints, isAlternatingPoints,
 } from '../../../utils/rules'
 import { getD4, getD3 } from '../../../utils/statistics'
+import { buildOutlierHovertext } from '../../../utils/outlierHover'
 
 const lineStore = useLineStore()
 const mainStore = useMainStore()
@@ -135,12 +135,12 @@ const renderChart = async () => {
 
   const selectPoints = (array: number[]) => {
     lineStore.cleanmrOutliers()
-    const result_1 = isOutsideControlLimits(array, upperLimit.value, lowerLimit.value)
+    const result_1 = isOutsideControlLimits(array, upperLimit.value, lowerLimit.value, lineStore.date)
     if (result_1.isOutside) {
-      result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) => lineStore.mrOutliers.push(point)
+      result_1.outsidePoints.forEach(point => lineStore.mrOutliers.push(point)
       )
     }
-    const result_2 = isConsecutivePointsSameSide(array,mean)
+    const result_2 = isConsecutivePointsSameSide(array, mean, lineStore.date)
     if (result_2.sameSide) {
       result_2.segments.forEach(segment => {
         segment.forEach(point=> {
@@ -148,7 +148,7 @@ const renderChart = async () => {
         })
       })
     }
-    const result_3 = isConsecutiveIncreasingOrDecreasingPoints(array)
+    const result_3 = isConsecutiveIncreasingOrDecreasingPoints(array, lineStore.date)
     if (result_3.increasingOrDecreasing) {
       result_3.segments.forEach(segment => {
         segment.forEach(point=> {
@@ -156,7 +156,7 @@ const renderChart = async () => {
         })
       })
     }
-    const result_4 = isAlternatingPoints(array)
+    const result_4 = isAlternatingPoints(array, lineStore.date)
     if (result_4.alternating) {
       result_4.segments.forEach(segment => {
         segment.forEach(point=> {
@@ -165,23 +165,11 @@ const renderChart = async () => {
       })
     }
   }
+
   selectPoints(lineStore.mrData.movingRanges)
-  const pointMessages = new Map<string, string[]>()
-  function addPoint(point: Outlier): void {
-    const key = `${point.x}_${point.y}`;
-    if (pointMessages.has(key)) {
-      pointMessages.get(key)?.push(point.message);
-    } else {
-      pointMessages.set(key, [point.message]);
-    }
-  }
-  for(const point of lineStore.mrOutliers) {
-    addPoint(point)
-  }
-  const hovertext = lineStore.mrOutliers.map((point) => {
-    const key = `${point.x}_${point.y}`
-    return pointMessages.get(key)?.join('<br>') || ''
-  })
+
+  const hovertext = buildOutlierHovertext(lineStore.mrOutliers)
+
   const outlierTrace = {
     x: lineStore.mrOutliers.map(outlier => outlier.x),
     y: lineStore.mrOutliers.map(outlier => outlier.y),

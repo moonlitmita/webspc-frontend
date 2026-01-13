@@ -70,7 +70,7 @@ export const useChatStore = defineStore('chat', {
           method: 'POST',
           data: { messages: this.messages }
         })
-
+        if (!stream) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         const reader = stream.body!.getReader()
         const decoder = new TextDecoder()
         
@@ -129,6 +129,7 @@ export const useChatStore = defineStore('chat', {
           method: 'POST',
           data: { messages: this.messages }
         })
+        if (!stream) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         const reader = stream.body!.getReader()
         const decoder = new TextDecoder()
         
@@ -173,6 +174,7 @@ export const useChatStore = defineStore('chat', {
     async getSessionHistory(): Promise<void> {
       try {
         const res: GetSessionHistoryResponse = await sessionApi.getSessionHistory({})
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if (res.data && res.data.history_sessions) {
           this.historySessions = res.data.history_sessions
         }
@@ -183,6 +185,7 @@ export const useChatStore = defineStore('chat', {
     async endSession() {
       try {
         const res = await sessionApi.endSession(this.activeSession)
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         this.session_detail = []
         this.messages = []
         this.activeSession = ""
@@ -194,6 +197,7 @@ export const useChatStore = defineStore('chat', {
     async getSessionDetail(conversation_id: string): Promise<void> {
       try {
         const res: GetSessionDetailResponse = await sessionApi.getSessionDetail(conversation_id)
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if(res.data && res.data.session_detail) {
           this.session_detail = res.data.session_detail
           // 将会话详情设置为当前消息

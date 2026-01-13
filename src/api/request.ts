@@ -8,6 +8,11 @@ import type { AxiosInstance, AxiosHeaders } from 'axios'
 import axios from 'axios'
 import config from '../config'
 import { ElMessage } from 'element-plus'
+// import {useRouter, useRoute} from 'vue-router'
+import router from '../router/router'
+
+// const router = useRouter()
+// const route = useRoute()
 
 const NETWORK_ERROR = '网络异常，请稍后再试'
 
@@ -48,13 +53,24 @@ function createService(baseURL: string): AxiosInstance {
         return data
       } 
       else if (code === 401) {
-        ElMessage.error(msg || NETWORK_ERROR)
+        localStorage.removeItem('token')
+        const { path, fullPath } = router.currentRoute.value
+        if (path === '/login') return Promise.resolve(null)
+        router.replace({ name: "login", query: {redirect: fullPath}})
+        return Promise.resolve(null)
       } else {
         ElMessage.error(msg || NETWORK_ERROR)
         return Promise.reject(msg || NETWORK_ERROR)
       }    
     },
     (error)=> {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token')
+        const { path, fullPath } = router.currentRoute.value
+        if (path === '/login') return Promise.resolve(null)
+        router.replace({ name: "login", query: {redirect: fullPath}})
+        return Promise.resolve(null)
+      }
       let { message } = error
       if (message == "Network Error") {
         message = "后端接口连接异常"
@@ -96,11 +112,35 @@ export function request<T = any>(options: Options<T>): Promise<T> {
 /* ========== 新增：MCP请求函数 ========== */
 export function MCPRequest<T = any>(options: Options<T>): Promise<T> {
   options.method = options.method || 'post'
+  if (options.method.toLowerCase()=='get') {
+    options.params = options.data
+  }
+  let isMock = config.mock 
+  if (typeof options.mock !== 'undefined') {
+    isMock = options.mock
+  }
+  if (config.env=='production') {
+    service.defaults.baseURL = config.baseApi
+  } else {
+    service.defaults.baseURL = isMock ? config.mockApi : config.baseApi
+  }
   return aiService(options) as Promise<T>
 }
 
 /* ========== 新增：chat请求函数 ========== */
 export function chatRequest<T = any>(options: Options<T>): Promise<T> {
-  options.method = options.method || 'get'
+  options.method = options.method || 'post'
+  if (options.method.toLowerCase()=='get') {
+    options.params = options.data
+  }
+  let isMock = config.mock 
+  if (typeof options.mock !== 'undefined') {
+    isMock = options.mock
+  }
+  if (config.env=='production') {
+    service.defaults.baseURL = config.baseApi
+  } else {
+    service.defaults.baseURL = isMock ? config.mockApi : config.baseApi
+  }
   return aiService(options) as Promise<T>
 }

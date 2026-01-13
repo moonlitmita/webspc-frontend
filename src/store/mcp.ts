@@ -20,6 +20,7 @@ export const useMCPStore = defineStore('mcp', {
     async loadConfig() {
       try {
         let res = await mcpApi.getMCP({})
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         this.mcpServers = res.data.mcp_config.mcpServers ?? {}
       } catch (error) {
         ElMessage.error('解析失败')

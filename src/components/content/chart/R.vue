@@ -13,11 +13,11 @@
 import { onMounted, onBeforeUnmount, watch, ref, nextTick } from 'vue'
 import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
 import { useLineStore } from '../../../store/lineData'
-import type { Outlier } from '../../../store/lineData'
 import { useMainStore } from '../../../store'
 import { getD3, getD4 } from '../../../utils/statistics'
 import { isOutsideControlLimits, isConsecutivePointsSameSide, isConsecutiveIncreasingOrDecreasingPoints, isAlternatingPoints,
  } from '../../../utils/rules'
+import { buildOutlierHovertext } from '../../../utils/outlierHover'
 
 const lineStore = useLineStore()
 const mainStore = useMainStore()
@@ -134,13 +134,11 @@ if (rChart.value && Plotly) {
 
 const selectPoints = (array: number[]) => {
   lineStore.cleanrOutliers()
-  const result_1 = isOutsideControlLimits(array,upperLimit,lowerLimit)
+  const result_1 = isOutsideControlLimits(array, upperLimit, lowerLimit, lineStore.date)
   if (result_1.isOutside) {
-    result_1.outsidePoints.forEach((point: { x: number; y: number; message: string; }) =>
-      lineStore.rOutliers.push(point)
-    )
+    result_1.outsidePoints.forEach(point => lineStore.rOutliers.push(point))
   }
-  const result_2 = isConsecutivePointsSameSide(array, mean)
+  const result_2 = isConsecutivePointsSameSide(array, mean, lineStore.date)
   if (result_2.sameSide) {
     result_2.segments.forEach(segment => {
       segment.forEach(point=> {
@@ -148,7 +146,7 @@ const selectPoints = (array: number[]) => {
       })
     })
   }
- const result_3 = isConsecutiveIncreasingOrDecreasingPoints(array)
+ const result_3 = isConsecutiveIncreasingOrDecreasingPoints(array, lineStore.date)
  if (result_3.increasingOrDecreasing) {
    result_3.segments.forEach(segment => {
      segment.forEach(point=> {
@@ -156,7 +154,7 @@ const selectPoints = (array: number[]) => {
      })
    })
  }
- const result_4 = isAlternatingPoints(array)
+ const result_4 = isAlternatingPoints(array, lineStore.date)
  if (result_4.alternating) {
    result_4.segments.forEach(segment => {
      segment.forEach(point=> {
@@ -166,22 +164,9 @@ const selectPoints = (array: number[]) => {
  }
 }
 selectPoints(lineStore.rBar.rValue)
-const pointMessages = new Map<string, string[]>()
-function addPoint(point: Outlier): void {
-  const key = `${point.x}_${point.y}`
-  if (pointMessages.has(key)) {
-    pointMessages.get(key)?.push(point.message)
-  } else {
-    pointMessages.set(key, [point.message]);
- }
-}
-for(const point of lineStore.rOutliers) {
-  addPoint(point)
-}
-const hovertext = lineStore.rOutliers.map((point) => {
-  const key = `${point.x}_${point.y}`
-  return pointMessages.get(key)?.join('<br>') || ''
-})
+
+const hovertext = buildOutlierHovertext(lineStore.rOutliers)
+
 const outlierTrace = {
   x: lineStore.rOutliers.map(outlier => outlier.x),
   y: lineStore.rOutliers.map(outlier => outlier.y),
