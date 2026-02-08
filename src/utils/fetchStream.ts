@@ -49,8 +49,20 @@ export async function fetchStream(options: StreamOptions): Promise<Response | nu
 
   /* 统一 HTTP 异常处理 */
   if (!res.ok) {
-    handleError(`${res.status} ${res.statusText}`)
-    return Promise.reject(res.statusText)
+    // handleError(`${res.status} ${res.statusText}`)
+    // return Promise.reject(res.statusText)
+    let message = `${res.status} ${res.statusText}`
+  
+    try {
+      // 尝试解析后端返回的 JSON 错误详情
+      const errorJson = await res.json()
+      message = errorJson.detail || errorJson.message || message
+    } catch {
+      // 解析失败，使用默认状态文本
+    }
+    
+    handleError(message)
+    return Promise.reject(message)
   }
 
   /* 直接返回原生 Response，让外部 getReader() */

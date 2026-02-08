@@ -43,7 +43,7 @@
     </el-card>
     <div class="footer-info">
       <div>作者: 王宇</div>
-      <div>技术支持: 
+      <div>技术服务: 
         <div>Email: wynmamtf@163.com</div>
         <div>QQ: 271989251</div>
         <div>Weixin: valleyfo</div>
@@ -66,15 +66,17 @@
       <div>版本: v2.0.0</div>
     </div>
     <!-- 底部备案信息 -->
-    <!-- <div class="icp-footer"> -->
-      <!-- <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener"> -->
+    <div class="icp-footer">
+      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">
         <!-- XICP备XXXXXXXXXX号 -->
-      <!-- </a> -->
-      <!-- <span class="sep">|</span> -->
-      <!-- <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener"> -->
+        辽ICP备2025062203号
+      </a>
+      <span class="sep">|</span>
+      <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener">
         <!-- X公网安备XXXXXXXXXXXXXX号 -->
-      <!-- </a> -->
-    <!-- </div> -->
+        冀公网安备13068102000383号
+      </a>
+    </div>
   </div>
 </template>
 <script lang="ts" setup>

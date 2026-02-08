@@ -39,6 +39,8 @@
 
 - [1.2 WebSPC使用方法补充-数据自动采集](https://www.bilibili.com/video/BV1ANQbY9EpH?spm_id_from=333.788.recommend_more_video.1&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 
+- [1.3 WebSPC使用方法-AI集成](https://www.bilibili.com/video/BV1KK6xB2Ecx/?vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
+
 # 2.开发环境配置：
 
 ## 2.1 克隆项目
@@ -72,6 +74,8 @@ npm run dev
 
 - <img src="src/assets/images/preview_2.png" width="500" alt="项目预览">
 
+- <img src="src/assets/images/preview_3.png" width="500" alt="项目预览">
+
 # 特别鸣谢：
 
 这个小程序的前端部分是在学习完前端大佬Allen,Jason老师的教程之后，才顺利开发出来。
@@ -96,7 +100,7 @@ Allen，Jason老师的前端教程地址是：https://space.bilibili.com/1643315
 
 # 5.技术服务：
 
-- 作者：valleyfo
+- 作者：王宇
 
 - Email: wynmamtf@163.com
 

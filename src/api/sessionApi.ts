@@ -11,6 +11,7 @@ export interface Message {
   content: string
   loading?: boolean
   streaming?: boolean
+  extraData?: any
 }
 
 export interface HistorySession {

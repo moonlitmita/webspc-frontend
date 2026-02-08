@@ -141,10 +141,8 @@ async function saveConfig() {
     // 1. 解析文本框内容
     const newConfig: MCPServers = JSON.parse(editText.value)
     mcpStore.mcpServers = newConfig
-    console.log('newConfig', newConfig)
     // 2. 调后端
     const res = await mcpStore.updateConfig()
-    console.log("组件MCP_res", res)
     // 3. 成功后刷新 store
     await mcpStore.loadConfig()          // 重新拉一遍
     ElMessage.success(res?.message || '配置已保存')
