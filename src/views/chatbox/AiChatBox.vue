@@ -8,7 +8,7 @@
   <div class="chat-box">
     <div class="chat-header">
       <div class="buttons-container">
-        <el-button type="primary" @click="chatStore.sendData(rawData)" :loading="chatStore.dataLoading">
+        <el-button type="primary" @click="chatStore.sendData(dataToSend)" :loading="chatStore.dataLoading">
           传送数据
         </el-button>
         <el-button type="primary" @click="chatStore.newSession">
@@ -109,8 +109,8 @@
         :class="{ 'msg--user': msg.role === 'user' }"
       >
         <div class="msg__bubble">
-          <div v-if="msg.streaming" v-html="renderMarkdown(msg.content)" />
-          <div v-else v-html="renderMarkdown(msg.content)" />
+          <div v-if="msg.streaming" v-html="renderMarkdown(msg.content, msg.extraData)" />
+          <div v-else v-html="renderMarkdown(msg.content, msg.extraData)" />
           <el-icon
             v-if="msg.role === 'assistant' && msg.loading"
             class="loading"
@@ -164,6 +164,58 @@ const isIndeterminate = ref(true)
 // 拿原始对象（去掉响应式，适合上传）
 import { toRaw } from 'vue'
 const rawData = toRaw(lineStore.$state) 
+
+// 解构获取多个字段，提供默认值以避免 TypeScript 错误
+const {
+  chartDataList_pagination = [],
+  chartDataList_all = [],
+  spcType = '',
+  process = '',
+  product = '',
+  projectName = '',
+  sampleSize = 0,
+  USL = 0,
+  LSL = 0,
+  iUCL = 0,
+  iLCL = 0,
+  mrUCL = 0,
+  mrLCL = 0,
+  rUCL = 0,
+  rLCL = 0,
+  xbarUCL = 0,
+  xbarLCL = 0,
+  dataCollectionType = '',
+  iOutliers = [],
+  mrOutliers = [],
+  rOutliers = [],
+  xbarOutliers = []
+} = rawData
+
+// 发送时只传需要的字段
+const dataToSend = {
+  chartDataList_pagination: chartDataList_pagination || [],  // 当前页数据（较小）
+  chartDataList_all: (chartDataList_all || []).slice(-150), // 截断：只传最后150条
+  spcType,
+  process,
+  product,
+  projectName,
+  sampleSize,
+  USL,
+  LSL,
+  iUCL,
+  iLCL,
+  mrUCL,
+  mrLCL,
+  rUCL,
+  rLCL,
+  xbarUCL,
+  xbarLCL,
+  dataCollectionType,
+  iOutliers: (iOutliers || []).slice(-50),
+  mrOutliers: (mrOutliers || []).slice(-50), // 异常点也可能很多，截断
+  rOutliers: (rOutliers || []).slice(-50),
+  xbarOutliers: (xbarOutliers || []).slice(-50)
+}
 
 const chatBodyRef = ref<HTMLDivElement>()
 const latest1 = computed(() => chatStore.historySessions.slice(-1))
@@ -307,25 +359,20 @@ watch(
 )
 
 /* 简易 markdown 渲染（ElementPlus 无自带，可换成 marked） */
-function renderMarkdown(text: string) {
-  // 1. 提取 <!--DATA:...--> 并替换成折叠卡片
-  const dataBlock = text.match(/<!--DATA:({.*?})-->/s)
-  if (dataBlock) {
-    try {
-      const json = JSON.parse(dataBlock[1])
-      // 生成折叠卡片 HTML
-      const card = `
-        <details class=\"data-details\">
-          <summary>📊 数据详情</summary>
-          <pre><code class=\"language-json\">${JSON.stringify(json, (k, v) =>
-      Array.isArray(v) ? v.map(item => JSON.stringify(item)).join(', ') : v, 2)}</code></pre>
-        </details>`
-      // 去掉原注释，插入卡片
-      text = text.replace(dataBlock[0], card)
-    } catch (e) {
-      // 解析失败就当普通文本
-    }
+function renderMarkdown(text: string, extraData?: any) {
+  // 如果存在 extraData，则添加数据详情卡片
+  if (extraData && Object.keys(extraData).length > 0) {
+    // 生成折叠卡片 HTML
+    const card = `
+      <details class=\"data-details\">
+        <summary>📊 数据详情</summary>
+        <pre><code class=\"language-json\">${JSON.stringify(extraData, (k, v) =>
+    Array.isArray(v) ? v.map(item => JSON.stringify(item)).join(', ') : v, 2)}</code></pre>
+      </details>`
+    // 在文本开头插入卡片
+    text = card + text
   }
+
   // 首先转义特殊字符，避免影响后续 markdown 解析
   text = text
     .replace(/&/g, '&amp;')
@@ -335,7 +382,7 @@ function renderMarkdown(text: string) {
   // 处理代码块，防止其中的 * 被误解析
   text = text.replace(/(```[\s\S]*?```|`[^`]*`)/g, function(match) {
     return match
-      .replace(/\*\*/g, '&ast;&ast;') // 临时转义代码块中的 ** 
+      .replace(/\*\*/g, '&ast;&ast;') // 临时转义代码块中的 **
       .replace(/\*/g, '&ast;') // 临时转义代码块中的 *
   })
 
@@ -349,7 +396,7 @@ function renderMarkdown(text: string) {
 
   // 恢复之前转义的特殊字符
   text = text
-    .replace(/&ast;&ast;/g, '**') // 恢复代码块中的 ** 
+    .replace(/&ast;&ast;/g, '**') // 恢复代码块中的 **
     .replace(/&ast;/g, '*') // 恢复代码块中的 *
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')

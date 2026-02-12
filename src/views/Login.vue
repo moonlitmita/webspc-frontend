@@ -43,7 +43,7 @@
     </el-card>
     <div class="footer-info">
       <div>作者: 王宇</div>
-      <div>技术支持: 
+      <div>技术服务: 
         <div>Email: wynmamtf@163.com</div>
         <div>QQ: 271989251</div>
         <div>Weixin: valleyfo</div>

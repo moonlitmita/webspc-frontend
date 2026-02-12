@@ -46,6 +46,7 @@ Language: TypeScript
 
 - [1.2 WebSPC Add-on: Automatic Data Collection](https://www.bilibili.com/video/BV1ANQbY9EpH?spm_id_from=333.788.recommend_more_video.1&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 
+- [1.3 WebSPC Usage Method - AI Integration](https://www.bilibili.com/video/BV1KK6xB2Ecx/?vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 # 2. Development Environment Setup
 
 ## 2.1 Clone
@@ -79,6 +80,8 @@ Ctrl + click the local link in the terminal to open the login page
 - <img src="src/assets/images/preview_1.png" width="500" alt="Project Preview">
 
 - <img src="src/assets/images/preview_2.png" width="500" alt="Project Preview">
+
+- <img src="src/assets/images/preview_3.png" width="500" alt="Project Preview">
 
 # 3.4 Special Thanks
 
