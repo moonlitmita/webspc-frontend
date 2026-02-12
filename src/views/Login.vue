@@ -66,17 +66,15 @@
       <div>版本: v2.0.0</div>
     </div>
     <!-- 底部备案信息 -->
-    <div class="icp-footer">
-      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">
+    <!-- <div class="icp-footer"> -->
+      <!-- <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener"> -->
         <!-- XICP备XXXXXXXXXX号 -->
-        辽ICP备2025062203号
-      </a>
-      <span class="sep">|</span>
-      <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener">
+      <!-- </a> -->
+      <!-- <span class="sep">|</span> -->
+      <!-- <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener"> -->
         <!-- X公网安备XXXXXXXXXXXXXX号 -->
-        冀公网安备13068102000383号
-      </a>
-    </div>
+      <!-- </a> -->
+    <!-- </div> -->
   </div>
 </template>
 <script lang="ts" setup>
