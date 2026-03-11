@@ -325,7 +325,6 @@ onMounted(async () => {
   adjustTextareaHeight()
   // 获取会话历史
   await chatStore.getSessionHistory()
-  await chatStore.getSessionDetail(chatStore.activeSession)
 })
 
 // 监听 showAllSessions的变化，重置选择状态
