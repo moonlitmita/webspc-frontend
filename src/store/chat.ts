@@ -56,25 +56,31 @@ export const useChatStore = defineStore('chat', {
     async sendMessage() {
       const text = this.inputText.trim()
       if (!text) return
-      
+
       this.pushMessage('user', text)
       this.clearInput()
       this.msgLoading = true
-      
+
       const assistantMsg = this.pushMessage('assistant', '', true)
-      
+
       try {
-        const stream = await fetchStream({
+        const res = await fetchStream({
           url: '/chat/stream',
           method: 'POST',
-          data: { 
+          data: {
             messages: this.messages.map(m => ({ role: m.role, content: m.content })),
             extraData: null
           }
         })
-        if (!stream) return
-        
-        await this.handleStream(stream, assistantMsg)
+        if (!res) return
+
+        // 从响应头获取 conversation_id
+        const conversationId = res.headers.get('X-Conversation-ID')
+        if (conversationId) {
+          this.activeSession = conversationId
+        }
+
+        await this.handleStream(res, assistantMsg)
       } catch (error) {
         ElMessage.error('解析失败')
         assistantMsg.content = '抱歉，请求异常，请稍后重试'
@@ -89,32 +95,38 @@ export const useChatStore = defineStore('chat', {
     async sendData(data: any) {
       // ✅ 提前截断数据，避免 124k token 错误
       // const trimmedData = this.trimExtraData(data)
-      
+
       const text = '请对以上数据进行分析'
       this.pushMessage('user', text, false, data)
-      
+
       if (!data || Object.keys(data).length === 0) {
         this.dataLoading = false
         return
       }
-      
+
       this.clearInput()
       this.dataLoading = true
-      
+
       const assistantMsg = this.pushMessage('assistant', '', true)
-      
+
       try {
-        const stream = await fetchStream({
+        const res = await fetchStream({
           url: '/chat/stream',
           method: 'POST',
-          data: { 
+          data: {
             messages: this.messages.map(m => ({ role: m.role, content: m.content })),
             extraData: data  // ✅ 独立字段发送
           }
         })
-        if (!stream) return
-        
-        await this.handleStream(stream, assistantMsg)
+        if (!res) return
+
+        // 从响应头获取 conversation_id
+        const conversationId = res.headers.get('X-Conversation-ID')
+        if (conversationId) {
+          this.activeSession = conversationId
+        }
+
+        await this.handleStream(res, assistantMsg)
       } catch (e) {
         assistantMsg.content = '抱歉，请求异常，请稍后重试'
         assistantMsg.loading = false
@@ -173,6 +185,10 @@ export const useChatStore = defineStore('chat', {
       }
     },
     async endSession() {
+      // 如果没有活跃会话，直接返回（无需调用后端）
+      if (!this.activeSession) {
+        return
+      }
       try {
         const res = await sessionApi.endSession(this.activeSession)
         if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
