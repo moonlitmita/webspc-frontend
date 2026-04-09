@@ -281,20 +281,26 @@ const handleError = ()=> {
 const handleFileChange = (uploadFile: File, uploadFiles: any)=> {
 }
 
-const uploadFile = ()=> {
+const uploadFile = async ()=> {
   try {
+    if (!fileList.value[0].raw) {
+      ElMessage.error('请选择文件后再上传！')
+      return
+    }
+
     let formData = new FormData()
     formData.append('dataType', 'batch')
     formData.append('file', fileList.value[0].raw as UploadRawFile)
     formData.append('project_id', lineStore.config.project_id)
     formData.append('sample_size', String(sampleSize))
-    lineStore.addHomeData(formData)
-    handleSuccess()
+
+    await lineStore.addHomeData(formData)
+
+    ElMessage.success('文件上传成功！')
     lineStore.loadData(false)
     uploadRef.value!.clearFiles()
-  } catch (error) {
-    // handleError()
-    ElMessage.error(`请求出错: ${error}`)
+  } catch (error: any) {
+    // 错误信息已经在拦截器中显示了
   }
 }
 
