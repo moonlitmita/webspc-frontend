@@ -48,10 +48,11 @@ function createService(baseURL: string): AxiosInstance {
     (res)=> {
       const code = res.data.code || 200
       const data = res.data
-      const msg = res.data.data.message
+      // 优先读取 message，如果没有则读取 error
+      const msg = res.data.data?.message || res.data.data?.error || res.data.message
       if(code === 200) {
         return data
-      } 
+      }
       else if (code === 401) {
         localStorage.removeItem('token')
         const { path, fullPath } = router.currentRoute.value
@@ -61,7 +62,7 @@ function createService(baseURL: string): AxiosInstance {
       } else {
         ElMessage.error(msg || NETWORK_ERROR)
         return Promise.reject(msg || NETWORK_ERROR)
-      }    
+      }
     },
     (error)=> {
       if (error.response?.status === 401) {
@@ -71,15 +72,28 @@ function createService(baseURL: string): AxiosInstance {
         router.replace({ name: "login", query: {redirect: fullPath}})
         return Promise.resolve(null)
       }
-      let { message } = error
-      if (message == "Network Error") {
-        message = "后端接口连接异常"
-      } else if (message.includes("timeout")) {
-        message = "系统接口请求超时"
-      } else if (message.includes("Request failed with status code")) {
-        message = "系统接口" + message.substr(message.length - 3) + "异常"
+      
+      // 尝试从后端响应中获取错误信息
+      let errorMsg = ''
+      if (error.response?.data) {
+        // 优先使用 data.message 或 data.error
+        const responseData = error.response.data
+        errorMsg = responseData.data?.message || responseData.data?.error || responseData.message || responseData.error || ''
       }
-      ElMessage.error(message)
+      
+      if (!errorMsg) {
+        let { message } = error
+        if (message == "Network Error") {
+          message = "后端接口连接异常"
+        } else if (message.includes("timeout")) {
+          message = "系统接口请求超时"
+        } else if (message.includes("Request failed with status code")) {
+          message = "系统接口" + message.substr(message.length - 3) + "异常"
+        }
+        errorMsg = message
+      }
+      
+      ElMessage.error(errorMsg)
       return Promise.reject(error)
     }
   )

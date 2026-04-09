@@ -239,8 +239,9 @@ export const useLineStore=defineStore('line',{
         // and potentially identify new outliers in the recently added data
         // For now, we'll just return the response
         return res.data
-      } catch (error) {
-        ElMessage.error('请求失败！')
+      } catch (error: any) {
+        // 传递错误信息，让调用方决定如何展示
+        throw error
       }
     },
     async editHomeData(val: any) {
