@@ -11,6 +11,7 @@ import type { Ref } from 'vue'
 import { useLineStore } from '../../../store/lineData'
 import { useMainStore } from '../../../store/index'
 import { getD2 } from '../../../utils/statistics'
+import { ElMessage } from 'element-plus'
 
 const lineStore = useLineStore()
 const mainStore = useMainStore()
@@ -36,6 +37,9 @@ const updateDynamicLimits= ()=> {
   testName.value = lineStore.testName
   pValue.value = lineStore.pValue
   tolerance.value = lineStore.USL - lineStore.LSL
+  if (tolerance.value <= 0) {
+    ElMessage.error('规格设置错误：USL 必须大于 LSL')
+  }
 }
 
 function calculateHistogramData(data: number[], binCount: number): { x: number[]; y: number[] } {
@@ -57,16 +61,28 @@ function calculateHistogramData(data: number[], binCount: number): { x: number[]
 function calculatePDFData(data: number[], mean: number, stdDev: number): { x: number[]; y: number[] } {
   const min = Math.min(...data)
   const max = Math.max(...data)
-  const step = tolerance.value/50
+  const POINTS = 200  // 固定采样 200 个点，与 step 无关
+  
+  // 处理边界：数据范围为零
+  if (min === max) {
+    const pdf = Math.exp(-Math.pow((min - mean) / stdDev, 2) / 2) / (stdDev * Math.sqrt(2 * Math.PI))
+    return { x: [min], y: [pdf] }
+  }
+  
   const x: number[] = []
   const y: number[] = []
-  for (let i = min; i <= max; i += step) {
-    x.push(i);
-    const pdf = Math.exp(-Math.pow((i - mean) / stdDev, 2) / 2) / (stdDev * Math.sqrt(2 * Math.PI));
-    y.push(pdf);
+  const step = (max - min) / (POINTS - 1)
+  
+  for (let i = 0; i < POINTS; i++) {
+    const xi = min + i * step
+    x.push(xi)
+    const pdf = Math.exp(-Math.pow((xi - mean) / stdDev, 2) / 2) / (stdDev * Math.sqrt(2 * Math.PI))
+    y.push(pdf)
   }
-  return { x, y };
+  
+  return { x, y }
 }
+
 function normalize(data: number[]): number[] {
   const maxVal = Math.max(...data);
   return data.map(val => val / maxVal);
