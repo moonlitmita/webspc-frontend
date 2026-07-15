@@ -44,6 +44,7 @@ export const useModelStore = defineStore('model', {
     async fetchProviders() {
       try {
         const res = await modelApi.getProviders()
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         this.providers = res.data
       } catch (error) {
         ElMessage.error('get API provider failed')
@@ -52,6 +53,7 @@ export const useModelStore = defineStore('model', {
             
     async fetchModelsbyProvider(provider: string) {
       const res = await modelApi.getModelsByProvider(provider)
+      if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
       this.modelsByProvider = res.data
     },
 
@@ -60,6 +62,7 @@ export const useModelStore = defineStore('model', {
       this.loading = true
       try {
         const response = await modelApi.getCurrentModel()
+        if (!response) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if (response.code === 200) {
           this.currentModel = response.data.current_model
           this.currentProvider = this.currentModel.provider || null
@@ -97,6 +100,7 @@ export const useModelStore = defineStore('model', {
       this.loading = true
       try {
         const response = await modelApi.getModelConfigs()
+        if (!response) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if (response.code === 200) {
           this.configs = response.data.model_configs
         }
@@ -121,7 +125,7 @@ export const useModelStore = defineStore('model', {
       } finally {
         this.loading = false
       }
-    },
-    persist: true
-  }
+    }
+  },
+  persist: true
 })

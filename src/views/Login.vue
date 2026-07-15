@@ -43,33 +43,38 @@
     </el-card>
     <div class="footer-info">
       <div>作者: 王宇</div>
-      <div>技术支持: 
+      <div>技术服务: 
         <div>Email: wynmamtf@163.com</div>
         <div>QQ: 271989251</div>
         <div>Weixin: valleyfo</div>
       </div>
       <div>
         <a href="https://gitee.com/valleyfo/webspc-frontend" target="_blank" rel="noopener">
-          WebSPC前端开源地址
+          WebSPC 前端业务开源地址
         </a>
       </div>
       <div>
         <a href="https://gitee.com/valleyfo/webspc-backend" target="_blank" rel="noopener">
-          WebSPC常规业务后端开源地址
+          WebSPC 常规后端业务开源地址
         </a>
       </div>
-      <div>版本: v1.0.1</div>
+      <div>
+        <a href="https://gitee.com/valleyfo/webspc-ai" target="_blank" rel="noopener">
+          WebSPC AI后端业务开源地址
+        </a>
+      </div>
+      <div>版本: v2.0.0</div>
     </div>
     <!-- 底部备案信息 -->
-    <!-- <div class="icp-footer">
-      <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener">
-        XICP备XXXXXXXXXX号
-      </a>
-      <span class="sep">|</span>
-      <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener">
-        X公网安备XXXXXXXXXXXXXX号
-      </a>
-    </div> -->
+    <!-- <div class="icp-footer"> -->
+      <!-- <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener"> -->
+        <!-- XICP备XXXXXXXXXX号 -->
+      <!-- </a> -->
+      <!-- <span class="sep">|</span> -->
+      <!-- <a href="https://www.beian.gov.cn/portal/registerSystemInfo" target="_blank" rel="noopener"> -->
+        <!-- X公网安备XXXXXXXXXXXXXX号 -->
+      <!-- </a> -->
+    <!-- </div> -->
   </div>
 </template>
 <script lang="ts" setup>
@@ -77,9 +82,7 @@ import { computed, reactive } from 'vue'
 import api from '../api/mainApi'
 import type { MenuResponse } from '../api/mainApi'
 import {useMainStore} from '../store/index'
-import { useProjectStore } from '../store/project'
-import { useLineStore } from '../store/lineData'
-import { useRouter ,useRoute} from 'vue-router'
+import { useRouter, useRoute} from 'vue-router'
 import type { AxiosResponse } from 'axios'
 import { ElForm } from 'element-plus'
 
@@ -106,31 +109,22 @@ const login = async()=>{
   mainStore.persistMenu(res.data.menu)
   mainStore.addRoutes(res.data.menu,router)
   mainStore.setToken(res.data.token)
-  
-  // 检查用户是否有项目数据
-  try {
-    // 获取项目数据
-    const projectStore = useProjectStore()
-    await projectStore.getProjectData()
-    
-    // 如果没有项目数据，跳转到项目页面
-    if (!projectStore.all || projectStore.all.length === 0) {
-      router.push('/project')
-      mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
-    } else {
-      // 如果有项目数据，检查lineStore中的cList
-      const lineStore = useLineStore()
-      // 如果cList为空，也跳转到项目页面
-      if (!lineStore.cList || lineStore.cList.length === 0) {
-        router.push('/project')
-        mainStore.currentMenu = {path: "/", name: 'project', label: "项目管理", icon: "Histogram", url: "project/Project"}
-      } else {
-        router.push(route.query.redirect as string || '/home')
-      }
-    }
-  } catch (error) {
-    // 如果获取项目数据失败，默认跳转到项目页面
-    router.push('/project')
+  // 获取到目标path
+  const raw = route.query.redirect as string
+  // 跳转到目标页面
+  router.replace(raw || '/home')
+  if (!raw || typeof raw !== 'string') {
+    // redirect 参数不存在或格式不对，做你想做的兜底：
+    // 比如跳到首页、给出提示、或者直接 return 不再往下走
+    return
+  }
+  // 目标path中可能包含查询参数，获取查询参数之前的纯path
+  const purePath = raw.split('?')[0]
+  // 根据目标path获取到目标menu
+  const toMenu = mainStore.menu.find(m => m.path === purePath)
+  // 更新目标menu到当前的menu
+  if(toMenu) {
+    mainStore.currentMenu = toMenu
   }
 }
 </script>

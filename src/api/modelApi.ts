@@ -68,7 +68,7 @@ export const modelApi = {
       url: '/models/available',
       method: 'get',
       mock: false,
-      params: { provider }
+      data: { provider }
     })
   },
   /**

@@ -6,38 +6,43 @@
 
 <template>
   <div class="user-container">
-    <div class="user-header">
-      <div class="add">
-        <el-button type="primary" @click="handleAdd">+新增</el-button>
-      </div>
-      <el-form :inline="true" :model="formInline" @submit.native.prevent>
-        <el-form-item label="请输入">
+    <div class="header">
+      <h2>用户管理</h2>
+      <el-button type="primary" @click="handleAdd">添加用户</el-button>
+    </div>
+
+    <el-card class="search-card">
+      <el-form :model="formInline" inline @submit.native.prevent>
+        <el-form-item label="用户名">
           <el-input v-model="formInline.keyword" placeholder="请输入用户名" @keyup.enter.native="handleSearch" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
-    </div>
+    </el-card>
     <div class="table-container">
       <div class="my-table">
         <div class="table-content">
-          <el-table :data="userStore.userList" style="width: 100%" height="auto">
-            <el-table-column 
+          <el-table :data="userStore.userList" style="width: 100%"
+                    v-loading="loading">
+            <el-table-column
               v-for="item in tableLabel"
               :key="item.prop"
               :label="item.label"
               :prop="item.prop"
-              :width="item.width?item.width:125"
+              :width="item.width?item.width:150"
+              show-overflow-tooltip
             />
-            <el-table-column fixed="right" label="操作" width="180">
+            <el-table-column fixed="right" label="操作" width="200">
               <template #default="scope">
-                <el-button size="small" @click="handleEdit(scope.row)">
-                  <el-icon style="font-size: 15px; margin-right: 3px;"><Edit /></el-icon>
+                <el-button type="primary" size="small" @click="handleEdit(scope.row)">
+                  <el-icon style="font-size: 13px; margin-right: 3px;"><Edit /></el-icon>
                   编辑
                 </el-button>
                 <el-button type="danger" size="small" @click="handleDelete(scope.row)">
-                  <el-icon style="font-size: 15px; margin-right: 3px;"><Delete /></el-icon>
+                  <el-icon style="font-size: 13px; margin-right: 3px;"><Delete /></el-icon>
                   删除
                 </el-button>
               </template>
@@ -49,9 +54,10 @@
           v-model:current-page="userStore.config.page"
           v-model:page-size="userStore.config.pageSize"
           :page-sizes="[5,10,15,20]"
-          @current-change="changePage"
-          layout="total,sizes,prev,pager,next,jumper" 
+          layout="total,sizes,prev,pager,next,jumper"
           :total="userStore.config.total"
+          @size-change="handleSizeChange"
+          @current-change="changePage"
         />
         </div>
       </div>
@@ -158,6 +164,7 @@ import { useDepStore } from '../../store/department'
 
 const userStore = useUserStore()
 const depStore = useDepStore()
+const loading = ref(false)
 const userForm: Ref<typeof ElForm | null> = ref(null)
 let isPasswordDisabled = ref(false)
 const dialogVisible = ref(false)
@@ -217,13 +224,25 @@ const tableLabel = reactive(
 )
 
 onMounted(()=>{
+  loading.value = true
   depStore.getDepData(true)
-  userStore.getUserData()
+  userStore.getUserData().finally(() => {
+    loading.value = false
+  })
 })
 
-const changePage= (page: number) =>{
-  userStore.config.page=page
+const handleSizeChange = (val: number) => {
+  userStore.config.pageSize = val
+  userStore.config.page = 1
   userStore.getUserData()
+}
+
+const changePage= (page: number) =>{
+  loading.value = true
+  userStore.config.page=page
+  userStore.getUserData().finally(() => {
+    loading.value = false
+  })
 }
 
 const formInline = reactive({
@@ -231,8 +250,20 @@ const formInline = reactive({
 })
 formInline.keyword = userStore.config.searchInfo
 const handleSearch = ()=>{
+  loading.value = true
   userStore.config.searchInfo = formInline.keyword
-  userStore.getUserData()
+  userStore.getUserData().finally(() => {
+    loading.value = false
+  })
+}
+
+const handleReset = () => {
+  formInline.keyword = ''
+  userStore.config.searchInfo = ''
+  loading.value = true
+  userStore.getUserData().finally(() => {
+    loading.value = false
+  })
 }
 
 watchEffect(()=> {
@@ -265,6 +296,7 @@ const handleDelete = (row: User)=> {
       center: true,
     })
     .then(() => {
+      loading.value = true
       userStore.deleteUser({
         id:row.id
       }).then(()=> {
@@ -274,10 +306,13 @@ const handleDelete = (row: User)=> {
           type: "success"
         })
         userStore.getUserData()
+      }).finally(() => {
+        loading.value = false
       })
     })
     .catch(() => {
       // catch error
+      loading.value = false
       ElMessage.error('删除失败')
     })
 }
@@ -329,20 +364,26 @@ const depOptions = computed(()=> {
 const onSubmit = () => {
   userForm.value?.validate((valid: Boolean)=>{
     if(valid) {
+      loading.value = true
       if(action.value=='add') {
         userStore.addUser(formUser).then((res)=> {
           userStore.getUserData()
+        }).finally(() => {
+          loading.value = false
         })
         userForm.value?.resetFields()
         dialogVisible.value=false
       } else {
         userStore.editUser(formUser).then(()=> {
           userStore.getUserData()
+        }).finally(() => {
+          loading.value = false
         })
         userForm.value?.resetFields()
         dialogVisible.value=false
       }
     } else {
+      loading.value = false
       ElMessage({
         showClose: true,
         message: '请输入正确内容',
@@ -354,31 +395,50 @@ const onSubmit = () => {
 </script>
 <style lang='less' scoped>
 .user-container {
+  padding: 20px;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  padding-top: 5px;
-  .user-header {
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  .header {
     display: flex;
     justify-content: space-between;
-    height: 35px;
-    .add {
-        margin-left: 10px;
-    }
+    align-items: center;
+    margin-bottom: 20px;
   }
+
+  .search-card {
+    margin-bottom: 20px;
+  }
+
   .table-container {
-    flex: 1 1 auto;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     .my-table {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
+      .table-content {
+        flex-shrink: 1;
+        flex-grow: 1;
+        flex-basis: auto;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+      }
       .pager {
-        margin-top: 0px;
-        margin-left: 5px;
+        height: 32px;
+        flex-shrink: 0;
       }
     }
+
   }
 }
 </style>

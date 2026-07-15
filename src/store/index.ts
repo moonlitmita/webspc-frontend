@@ -17,7 +17,8 @@ interface State {
   routes:Array<RouteRecordRaw>,
   token: string,
   currentTab: number,
-  aiVisible: boolean
+  aiVisible: boolean,
+  isRealTimeMode: boolean
 }
 export const useMainStore = defineStore('main', {
   state: ():State => {
@@ -40,7 +41,8 @@ export const useMainStore = defineStore('main', {
       routes: [],
       token: '',
       currentTab: 0,
-      aiVisible: false
+      aiVisible: false,
+      isRealTimeMode: false
     }
   },
   getters: {},
@@ -115,6 +117,9 @@ export const useMainStore = defineStore('main', {
       this.token=''
       localStorage.removeItem('token')
     },
-    },
-    persist: true
+    toggleRealTimeMode() {
+      this.isRealTimeMode = !this.isRealTimeMode
+    }
+  },
+  persist: true
 })

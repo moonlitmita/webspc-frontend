@@ -6,6 +6,9 @@
 
 <template>
   <div class="llm-container">
+    <div class="header">
+      <h2>LLM管理</h2>
+    </div>
     <div class="model-selector">
       <div class="selector-pair">
         <div class="selector-group">
@@ -126,7 +129,6 @@ const handleApply = async () => {
       }
     }
   } catch (error) {
-    console.error('切换模型时发生错误:', error)
     ElMessage.error('切换模型时发生错误')
     // 如果切换失败，重置选择器为当前模型
     if (modelStore.currentModel) {
@@ -140,19 +142,20 @@ const handleApply = async () => {
 onMounted(async () => {
   // 先获取可用模型列表
   // await modelStore.fetchAvailableModels()
-  await modelStore.fetchProviders()
+  modelStore.fetchProviders()
   
   // 再获取当前模型
-  await modelStore.fetchCurrentModel()
+  modelStore.fetchCurrentModel().then(() => {
+    if (modelStore.currentModel) {
+      provider.value = modelStore.currentProvider || ''
+      model_id.value = modelStore.currentModel.id
+    }
+  })
   
   // 获取模型配置
-  await modelStore.fetchModelConfigs()
+  modelStore.fetchModelConfigs()
   if (modelStore.currentProvider) {
-    await modelStore.fetchModelsbyProvider(modelStore.currentProvider)
-  }
-  if (modelStore.currentModel) {
-    provider.value = modelStore.currentProvider || ''
-    model_id.value = modelStore.currentModel.id
+    modelStore.fetchModelsbyProvider(modelStore.currentProvider)
   }
 })
 
@@ -174,7 +177,6 @@ async function saveConfigs() {
     modelStore.configs = newConfigs
     // 3. 调用后端保存
     const result = await modelStore.updateModelConfigs()
-    console.log('modelResult', result)
     if (result.success) {
       ElMessage.success(result.message)
       editing.value = false
@@ -214,7 +216,8 @@ async function handleCopy() {
 }
 .model-selector {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: flex-start; /* 左对齐 */
   flex-shrink: 0; /* 防止收缩 */
 }
 
@@ -223,12 +226,26 @@ async function handleCopy() {
   align-items: end;
   gap: 15px;
   flex-wrap: wrap; /* 允许换行 */
+  margin-bottom: 20px; /* 给选择器组底部留出空间 */
 }
 
 .selector-group {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start; /* 左对齐 */
+  margin: 0;
+  min-width: 200px; /* 为选择器设置最小宽度 */
+}
+
+.header {
+  margin-bottom: 20px; /* 调整标题下方间距 */
+  align-self: flex-start; /* 保持左对齐 */
+}
+
+.header h2 {
+  margin: 0;
+  color: #303133;
+  padding-left: 2px; /* 与标签保持一致的左边距 */
 }
 
 .selector-label {
@@ -247,6 +264,8 @@ async function handleCopy() {
 
 .apply-btn {
   margin-bottom: 2px; /* Align with the bottom of the selectors */
+  align-self: flex-end; /* 底部对齐 */
+  margin-left: 15px; /* 为应用按钮留出左边距 */
 }
 
 .model-option {
@@ -267,7 +286,7 @@ async function handleCopy() {
 /* 模型配置编辑区域样式 */
 .model-config-container {
   box-sizing: border-box;
-  margin-top: 30px;
+  margin-top: 20px; /* 调整上方间距 */
   border: 1px solid #e4e7ed;
   border-radius: 4px;
   background: #fafafa;

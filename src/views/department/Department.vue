@@ -6,23 +6,27 @@
 
 <template>
   <div class="dep-container">
-    <div class="dep-header">
-      <div class="add">
-        <el-button type="primary" @click="handleAdd">+新增</el-button>
-      </div>
-      <el-form :inline="true" :model="formInline" @submit.native.prevent>
-        <el-form-item label="请输入">
-          <el-input v-model="formInline.keyword" placeholder="部门名称" @keyup.enter.native="handleSearch"></el-input>
-        </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-      </el-form-item>
-      </el-form>
+    <div class="header">
+      <h2>部门管理</h2>
+      <el-button type="primary" @click="handleAdd">添加部门</el-button>
     </div>
+
+    <el-card class="search-card">
+      <el-form :model="formInline" inline @submit.native.prevent>
+        <el-form-item label="部门名称">
+          <el-input v-model="formInline.keyword" placeholder="请输入部门名称" @keyup.enter.native="handleSearch"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
     <div class="table-container">
       <div class="my-table">
         <div class="table-content">
-          <el-table :data="depStore.depList_pagination" style="width: 100%">
+          <el-table :data="depStore.depList_pagination" style="width: 100%"
+                    v-loading="loading">
           <el-table-column 
             v-for="item in tableLabel"
             :key="item.prop"
@@ -32,7 +36,7 @@
           />
           <el-table-column fixed="right" label="操作" width="200">
             <template #default="scope">
-              <el-button size="small" @click="handleEdit(scope.row)">
+              <el-button type="primary" size="small" @click="handleEdit(scope.row)">
                 <el-icon style="font-size: 13px; margin-right: 3px;"><Edit /></el-icon>
                 编辑
               </el-button>
@@ -49,9 +53,10 @@
           v-model:current-page="depStore.config.page"
           v-model:page-size="depStore.config.pageSize"
           :page-sizes="[5,10,15,20]"
-          @current-change="changePage"
           layout="total,sizes,prev,pager,next,jumper" 
           :total="depStore.config.total"
+          @size-change="handleSizeChange"
+          @current-change="changePage"
           />
         </div>
       </div>
@@ -93,6 +98,7 @@ import {ElMessageBox,ElMessage,ElForm} from 'element-plus'
 
 const depStore = useDepStore()
 const depForm: Ref<typeof ElForm | null> = ref(null)
+const loading = ref(false)
 const dialogVisible = ref(false)
 const tableLabel = reactive(
   [   
@@ -119,11 +125,24 @@ const tableLabel = reactive(
   ]
 )
 onMounted(()=>{
-  depStore.getDepData(false)
+  loading.value = true
+  depStore.getDepData(false).finally(() => {
+    loading.value = false
+  })
 })
-const changePage= (page: number) =>{
-  depStore.config.page=page
+
+const handleSizeChange = (val: number) => {
+  depStore.config.pageSize = val
+  depStore.config.page = 1
   depStore.getDepData(false)
+}
+
+const changePage= (page: number) =>{
+  loading.value = true
+  depStore.config.page=page
+  depStore.getDepData(false).finally(() => {
+    loading.value = false
+  })
 }
 const formInline = reactive({
   keyword: ""
@@ -133,7 +152,19 @@ watchEffect(()=> {
   depStore.config.dep = formInline.keyword
 })
 const handleSearch = ()=>{
-  depStore.getDepData(false)
+  loading.value = true
+  depStore.getDepData(false).finally(() => {
+    loading.value = false
+  })
+}
+
+const handleReset = () => {
+  formInline.keyword = ''
+  depStore.config.dep = ''
+  loading.value = true
+  depStore.getDepData(false).finally(() => {
+    loading.value = false
+  })
 }
 const handleCancel = () => {
   dialogVisible.value=false
@@ -157,6 +188,7 @@ const handleDelete = (row: Dep)=> {
     center: true,
   })
   .then(() => {
+    loading.value = true
     depStore.deleteDep({
     id:row.id
     }).then(()=> {
@@ -166,10 +198,13 @@ const handleDelete = (row: Dep)=> {
       type: "success"
     })
     depStore.getDepData(false)
+    }).finally(() => {
+      loading.value = false
     })
   })
   .catch(() => {
     // catch error
+    loading.value = false
   })
 }
 const handleAdd = ()=> {
@@ -200,20 +235,26 @@ const formDep = reactive({
 const onSubmit = () => {
   depForm.value?.validate((valid: Boolean)=>{
     if(valid) {
+      loading.value = true
       if(action.value=='add') {
         depStore.addDep(formDep).then(()=>{
           depStore.getDepData(false)
+        }).finally(() => {
+          loading.value = false
         })
         depForm.value?.resetFields()
         dialogVisible.value=false
       } else {
         depStore.editDep(formDep).then(()=> {
           depStore.getDepData(false)
+        }).finally(() => {
+          loading.value = false
         })
         depForm.value?.resetFields()
         dialogVisible.value=false
       }
     } else {
+      loading.value = false
       ElMessage({
         showClose: true,
         message: '请输入正确内容',
@@ -225,34 +266,46 @@ const onSubmit = () => {
 </script>
 <style lang='less' scoped>
 .dep-container {
-  box-sizing: border-box;
+  padding: 20px;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  padding-top: 5px;
-  .dep-header{
-    box-sizing: border-box;
-    display:flex;
-    height: 35px;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  .header {
+    display: flex;
     justify-content: space-between;
-    .add {
-      margin-left: 10px;
-    }
+    align-items: center;
+    margin-bottom: 20px;
   }
+  .search-card {
+    margin-bottom: 20px;
+  }
+
   .table-container {
-    flex: 1 1 auto;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     .my-table {
       flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      .tabel-content {
-        flex: 1;
+      .table-content {
+        flex-shrink: 1;
+        flex-grow: 1;
+        flex-basis: auto;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
       }
       .pager {
-        margin-top: 0px;
-        margin-left: 5px;
+        height: 32px;
+        flex-shrink: 0;
       }
     }
   }

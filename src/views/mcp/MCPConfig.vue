@@ -6,6 +6,9 @@
 
 <template>
   <div class="mcp-config-container">
+    <div class="header">
+      <h2>MCP配置管理</h2>
+    </div>
     <el-row :gutter="20">
       <!-- 左侧 MCP Server 列表 -->
       <el-col :span="8">
@@ -138,10 +141,8 @@ async function saveConfig() {
     // 1. 解析文本框内容
     const newConfig: MCPServers = JSON.parse(editText.value)
     mcpStore.mcpServers = newConfig
-    console.log('newConfig', newConfig)
     // 2. 调后端
     const res = await mcpStore.updateConfig()
-    console.log("组件MCP_res", res)
     // 3. 成功后刷新 store
     await mcpStore.loadConfig()          // 重新拉一遍
     ElMessage.success(res?.message || '配置已保存')
@@ -174,6 +175,17 @@ async function handleCopy() {
   display: flex;
   flex-direction: column;
   padding: 30px;
+}
+
+.header {
+  margin-bottom: 20px; /* 调整标题下方间距 */
+  align-self: flex-start; /* 保持左对齐 */
+}
+
+.header h2 {
+  margin: 0;
+  color: #303133;
+  padding-left: 2px; /* 与标签保持一致的左边距 */
 }
 
 .mcp-server-list {

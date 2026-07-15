@@ -9,6 +9,9 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    global: 'globalThis',
+  },
   plugins: [
     vue(),
     vueDevTools(),
@@ -24,4 +27,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Remove manual chunking to avoid initialization issues in K3s deployment
+        // Let Vite handle chunking automatically to maintain proper initialization order
+      }
+    },
+    chunkSizeWarningLimit: 1000 // Increase limit to account for plotly modules
+  }
 })

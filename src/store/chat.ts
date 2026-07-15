@@ -20,7 +20,7 @@ interface ChatState {
   msgLoading: boolean
   dataLoading: boolean
   showAllSessions: boolean
-  extraData: any
+  // extraData: any  // 已移除，使用每条消息自身的 extraData
   historySessions: GetSessionHistoryResponse['data']['history_sessions']
   session_detail: GetSessionDetailResponse['data']['session_detail']
   activeSession: string
@@ -34,7 +34,6 @@ export const useChatStore = defineStore('chat', {
       msgLoading: false,
       dataLoading: false,
       showAllSessions: false,
-      extraData: '',
       historySessions: [],
       session_detail: [],
       activeSession: ""
@@ -42,71 +41,46 @@ export const useChatStore = defineStore('chat', {
   },
   getters: {},
   actions: {
-    // 添加一条消息（内部用）
+    // 添加一条消息（简化：不再处理 extraData 拼接）
     pushMessage(role: 'user' | 'assistant', content = '', streaming = false, extraData?: any) {
-      // 如果带了数据，就拼成统一格式
-      if (extraData !== undefined) {
-        content += `\n\n<!--DATA:${JSON.stringify(extraData)}-->`
-      }
-      this.extraData = extraData
-      const msg: Message = { role, content, streaming, loading: streaming }
+      const msg: Message = { role, content, streaming, loading: streaming, extraData }
       this.messages.push(msg)
-      return msg // 返回引用，方便后面追加
+      return msg
     },
+
     clearInput() {
       this.inputText = ''
     },
-    // 核心：发送 + 流式接收
+
+    // 核心：发送 + 流式接收（普通文本）
     async sendMessage() {
       const text = this.inputText.trim()
-      if(!text) return
+      if (!text) return
+
       this.pushMessage('user', text)
       this.clearInput()
       this.msgLoading = true
+
       const assistantMsg = this.pushMessage('assistant', '', true)
+
       try {
-        const stream = await fetchStream({
+        const res = await fetchStream({
           url: '/chat/stream',
           method: 'POST',
-          data: { messages: this.messages }
+          data: {
+            messages: this.messages.map(m => ({ role: m.role, content: m.content })),
+            extraData: null
+          }
         })
+        if (!res) return
 
-        const reader = stream.body!.getReader()
-        const decoder = new TextDecoder()
-        
-        let buffer = ''
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) {
-            assistantMsg.loading = false
-            assistantMsg.streaming = false
-            break
-          }
-          buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || ''
-          for (const ln of lines) {
-            if (ln.startsWith('data: ')) {
-              const json = ln.slice(6)
-              // console.log(new Date().toLocaleTimeString(), json)
-              if (json === '[DONE]') {
-                assistantMsg.loading = false
-                assistantMsg.streaming = false
-                return
-              }
-              const { delta } = JSON.parse(json)
-              if (delta) {
-                const last = this.messages[this.messages.length - 1]
-                // console.log('帧到达', delta, '内容长度=', last.content.length)
-                last.content += delta
-                // console.log('内容立即变为', last.content.length)
-                nextTick(() => {
-                  bus.emit()
-                })
-              }
-            }
-          }
+        // 从响应头获取 conversation_id
+        const conversationId = res.headers.get('X-Conversation-ID')
+        if (conversationId) {
+          this.activeSession = conversationId
         }
+
+        await this.handleStream(res, assistantMsg)
       } catch (error) {
         ElMessage.error('解析失败')
         assistantMsg.content = '抱歉，请求异常，请稍后重试'
@@ -116,52 +90,43 @@ export const useChatStore = defineStore('chat', {
         this.msgLoading = false
       }
     },
+
+    // 发送数据（带 extraData）
     async sendData(data: any) {
-      const text = '请对以下数据进行分析'
+      // ✅ 提前截断数据，避免 124k token 错误
+      // const trimmedData = this.trimExtraData(data)
+
+      const text = '请对以上数据进行分析'
       this.pushMessage('user', text, false, data)
-      if (!this.extraData) return   // 没数据 → 直接返回
+
+      if (!data || Object.keys(data).length === 0) {
+        this.dataLoading = false
+        return
+      }
+
       this.clearInput()
       this.dataLoading = true
+
       const assistantMsg = this.pushMessage('assistant', '', true)
+
       try {
-        const stream = await fetchStream({
+        const res = await fetchStream({
           url: '/chat/stream',
           method: 'POST',
-          data: { messages: this.messages }
+          data: {
+            messages: this.messages.map(m => ({ role: m.role, content: m.content })),
+            extraData: data  // ✅ 独立字段发送
+          }
         })
-        const reader = stream.body!.getReader()
-        const decoder = new TextDecoder()
-        
-        let buffer = ''
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) {
-            assistantMsg.loading = false
-            assistantMsg.streaming = false
-            break
-          }
-          buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split('\n')
-          buffer = lines.pop() || ''
-          for (const ln of lines) {
-            if (ln.startsWith('data: ')) {
-              const json = ln.slice(6)
-              if (json === '[DONE]') {
-                assistantMsg.loading = false
-                assistantMsg.streaming = false
-                return
-              }
-              const { delta } = JSON.parse(json)
-              if (delta) {
-                const last = this.messages[this.messages.length - 1]
-                last.content += delta
-                nextTick(() => {
-                  bus.emit()
-                })
-              }
-            }
-          }
+        if (!res) return
+
+        // 从响应头获取 conversation_id
+        const conversationId = res.headers.get('X-Conversation-ID')
+        if (conversationId) {
+          this.activeSession = conversationId
         }
+
+        await this.handleStream(res, assistantMsg)
       } catch (e) {
         assistantMsg.content = '抱歉，请求异常，请稍后重试'
         assistantMsg.loading = false
@@ -170,9 +135,48 @@ export const useChatStore = defineStore('chat', {
         this.dataLoading = false
       }
     },
+
+    // 提取公共的流式处理逻辑
+    async handleStream(stream: Response, assistantMsg: Message) {
+      const reader = stream.body!.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) {
+          assistantMsg.loading = false
+          assistantMsg.streaming = false
+          break
+        }
+        
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+        
+        for (const ln of lines) {
+          if (ln.startsWith('data: ')) {
+            const json = ln.slice(6)
+            if (json === '[DONE]') {
+              assistantMsg.loading = false
+              assistantMsg.streaming = false
+              return
+            }
+            const { delta } = JSON.parse(json)
+            if (delta) {
+              const last = this.messages[this.messages.length - 1]
+              last.content += delta
+              nextTick(() => bus.emit())
+            }
+          }
+        }
+      }
+    },
+
     async getSessionHistory(): Promise<void> {
       try {
         const res: GetSessionHistoryResponse = await sessionApi.getSessionHistory({})
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if (res.data && res.data.history_sessions) {
           this.historySessions = res.data.history_sessions
         }
@@ -181,8 +185,13 @@ export const useChatStore = defineStore('chat', {
       }
     },
     async endSession() {
+      // 如果没有活跃会话，直接返回（无需调用后端）
+      if (!this.activeSession) {
+        return
+      }
       try {
         const res = await sessionApi.endSession(this.activeSession)
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         this.session_detail = []
         this.messages = []
         this.activeSession = ""
@@ -194,6 +203,7 @@ export const useChatStore = defineStore('chat', {
     async getSessionDetail(conversation_id: string): Promise<void> {
       try {
         const res: GetSessionDetailResponse = await sessionApi.getSessionDetail(conversation_id)
+        if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
         if(res.data && res.data.session_detail) {
           this.session_detail = res.data.session_detail
           // 将会话详情设置为当前消息

@@ -5,14 +5,18 @@
 */
 
 <script lang="ts" setup>
-import Plotly from 'plotly.js-dist-min'
-import { onMounted, ref, watch } from 'vue'
+import { loadPlotly, type PlotlyType } from '../../../utils/plotlyLoader'
+import { onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import { useLineStore } from '../../../store/lineData'
+import { useMainStore } from '../../../store/index'
 import { getD2 } from '../../../utils/statistics'
+import { ElMessage } from 'element-plus'
 
 const lineStore = useLineStore()
+const mainStore = useMainStore()
 const normal = ref()
+let Plotly: PlotlyType | null = null
 const n = Number(lineStore.sampleSize)
 const result = Math.sqrt(n)
 const yMeans = ref([0])
@@ -33,6 +37,9 @@ const updateDynamicLimits= ()=> {
   testName.value = lineStore.testName
   pValue.value = lineStore.pValue
   tolerance.value = lineStore.USL - lineStore.LSL
+  if (tolerance.value <= 0) {
+    ElMessage.error('规格设置错误：USL 必须大于 LSL')
+  }
 }
 
 function calculateHistogramData(data: number[], binCount: number): { x: number[]; y: number[] } {
@@ -54,27 +61,44 @@ function calculateHistogramData(data: number[], binCount: number): { x: number[]
 function calculatePDFData(data: number[], mean: number, stdDev: number): { x: number[]; y: number[] } {
   const min = Math.min(...data)
   const max = Math.max(...data)
-  const step = tolerance.value/50
+  const POINTS = 200  // 固定采样 200 个点，与 step 无关
+  
+  // 处理边界：数据范围为零
+  if (min === max) {
+    const pdf = Math.exp(-Math.pow((min - mean) / stdDev, 2) / 2) / (stdDev * Math.sqrt(2 * Math.PI))
+    return { x: [min], y: [pdf] }
+  }
+  
   const x: number[] = []
   const y: number[] = []
-  for (let i = min; i <= max; i += step) {
-    x.push(i);
-    const pdf = Math.exp(-Math.pow((i - mean) / stdDev, 2) / 2) / (stdDev * Math.sqrt(2 * Math.PI));
-    y.push(pdf);
+  const step = (max - min) / (POINTS - 1)
+  
+  for (let i = 0; i < POINTS; i++) {
+    const xi = min + i * step
+    x.push(xi)
+    const pdf = Math.exp(-Math.pow((xi - mean) / stdDev, 2) / 2) / (stdDev * Math.sqrt(2 * Math.PI))
+    y.push(pdf)
   }
-  return { x, y };
+  
+  return { x, y }
 }
+
 function normalize(data: number[]): number[] {
   const maxVal = Math.max(...data);
   return data.map(val => val / maxVal);
 }
 
-const renderChart = ()=> {
+const renderChart = async ()=> {
+  // Load Plotly if not already loaded
+  if (!Plotly) {
+    Plotly = await loadPlotly();
+  }
+  
   updateDynamicLimits()
   const binCount = 10
   const histogramData = calculateHistogramData(yMeans.value, binCount)
   const pdfData = calculatePDFData(yMeans.value, mean.value, sigma.value)
-  const histogramTrace: Partial<Plotly.PlotData>[] = [
+  const histogramTrace: any = [
     {
       type: 'bar',
       x: histogramData.x,
@@ -86,7 +110,7 @@ const renderChart = ()=> {
       showlegend: false
     },
   ]
-  const pdfTrace: Partial<Plotly.PlotData>[] = [
+  const pdfTrace: any = [
     {
       type: 'scatter',
       x: pdfData.x,
@@ -100,21 +124,21 @@ const renderChart = ()=> {
     },
   ]
   const graphData = [...histogramTrace, ...pdfTrace]
-  const layout: Partial<Plotly.Layout> = {
+  const layout: any = {
     title: {
       text:'数据分布图',
       yanchor: 'middle'
     },
     xaxis: {
-      title: '观测值' as Partial<Plotly.Layout>,
+      title: '观测值',
     },
     yaxis: {
-      title: '频数' as Partial<Plotly.Layout>,
+      title: '频数',
       range: [0, 30],
       side: 'left'
     },
     yaxis2: {
-      title: '概率密度' as Partial<Plotly.Layout>,
+      title: '概率密度',
       range: [0, 1], 
       overlaying: 'y',
       side: 'right',
@@ -148,17 +172,32 @@ const renderChart = ()=> {
     ]
   }
   const config = { responsive: true }
-  Plotly.newPlot(normal.value, graphData, layout,config)
+  if (normal.value && Plotly) {
+    Plotly.newPlot(normal.value, graphData, layout, config)
+  }
 }
 
-onMounted(()=> {
-  lineStore.loadData(true).then(()=> {
-    renderChart()
+// 组件卸载前的清理工作
+onBeforeUnmount(() => {
+  // 如果需要，可以在这里销毁plotly图表
+  if (Plotly && normal.value) {
+    try {
+      Plotly.purge(normal.value); // 清理plotly图表
+    } catch (e) {
+      console.warn('Error while purging plotly chart:', e);
+    }
+  }
+});
+
+onMounted(async ()=> {
+  lineStore.loadData(true).then(async ()=> {
+    await renderChart()
   })
-  watch(()=> lineStore.xBarMean.yMeans,
-    (newvalues, oldValues)=> {
-      if(newvalues !== oldValues) {
-        renderChart()
+  watch(
+    ()=> [lineStore.xBarMean.yMeans],
+    async (newValues, oldValues)=> {
+      if(newValues[0] !== oldValues[0] && normal.value) {
+        await renderChart()
       }
     }
   )

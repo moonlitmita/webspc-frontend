@@ -35,6 +35,7 @@ export const useDepStore = defineStore('dep', {
   actions: {
     async getDepData(getAll: Boolean): Promise<void> { 
       let res: DepResponse = await api.getDepData({...this.config, getAll:getAll})
+      if (!res) return  //该行代码用于阻拦token过期后跳转登录页面错误冒泡
       if(getAll) {
         this.depList_all = res.data.all || []
       } else {
