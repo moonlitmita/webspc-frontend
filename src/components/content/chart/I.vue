@@ -22,6 +22,7 @@ const mainStore = useMainStore()
 const sampleSize = lineStore.sampleSize
 const iChart = ref()
 let Plotly: PlotlyType | null = null
+const { isRealTimeMode } = storeToRefs(mainStore)
 const USL = lineStore.USL
 const LSL = lineStore.LSL
 const mean = ref(0)

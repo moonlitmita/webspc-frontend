@@ -26,6 +26,8 @@ follow-up task.
 
 3. AI back-end business code address: https://gitee.com/valleyfo/webspc-ai
 
+AI back-end business code address: https://gitee.com/valleyfo/webspc-ai
+
 # Project Architecture
 
 Front-end:
