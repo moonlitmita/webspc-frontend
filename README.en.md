@@ -61,6 +61,8 @@ Ctrl + click the local link in the terminal to open the login page
 
 # 3. Production Deployment
 
+Contact the author to obtain: WebSPC Deployment Guide, including k3s environment setup (with video) and project deployment documentation.
+
 ## Videos
 
 - [3.1 WebSPC Deployment Part 1](https://www.bilibili.com/video/BV11RQAYWE82/?spm_id_from=333.1387.collection.video_card.click&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
@@ -94,6 +96,8 @@ Many thanks to Allen & Jason and their team for the selfless sharing!
 # 4. Live Demo
 
 - URL: https://webspc.top
+
+- The demo link above will be taken offline at the end of July 2026.
 
 - Username: admin
 

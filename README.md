@@ -56,6 +56,8 @@ npm run dev
 
 # 3.生产环境部署：
 
+联系作者获取: WebSPC部署指南，包含k3s环境搭建(含视频)，项目部署文档。
+
 - [3.1 WebSPC项目部署_01](https://www.bilibili.com/video/BV11RQAYWE82/?spm_id_from=333.1387.collection.video_card.click&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 
 - [3.2 WebSPC项目部署_02](https://www.bilibili.com/video/BV1EmQwYgEJt/?spm_id_from=333.1387.collection.video_card.click&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
@@ -87,6 +89,8 @@ Allen，Jason老师的前端教程地址是：https://space.bilibili.com/1643315
 特别鸣谢Allen,Jason老师及其团队的无私分享！
 
 # 4.项目演示地址：https://webspc.top
+
+以上演示地址将于2026年7月底下线
 
 - 用户名：admin
 
