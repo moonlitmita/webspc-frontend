@@ -139,7 +139,7 @@ const login = async()=>{
   justify-content: center;
   align-items: center;
   .login-container {
-    width: 400px;
+    width: min(400px, 92vw);
     margin: 100px auto;
     padding: 20px;
     border-radius: 25px;
@@ -205,6 +205,19 @@ const login = async()=>{
 
     .sep {
       margin: 0 6px;
+    }
+  }
+  /* 移动端适配 */
+  @media (max-width: 768px) {
+    .footer-info {
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      font-size: 11px;
+      text-align: center;
+    }
+    .login-container {
+      margin: 40px auto;
     }
   }
 }

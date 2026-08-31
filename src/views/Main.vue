@@ -6,19 +6,33 @@
 
 <template>
   <div class="common-layout">
-    <div class="common-aside">
+    <!-- PC端：固定侧边栏 -->
+    <div v-if="!mainStore.isMobile" class="common-aside">
       <CommonAside />
     </div>
+    <!-- 移动端：抽屉式侧边栏 -->
+    <el-drawer
+      v-if="mainStore.isMobile"
+      v-model="mainStore.asideOpen"
+      direction="ltr"
+      size="220px"
+      :with-header="false"
+      class="mobile-aside-drawer"
+    >
+      <div class="common-aside drawer-aside">
+        <CommonAside in-drawer @navigate="mainStore.closeAside" />
+      </div>
+    </el-drawer>
     <el-container class="r-container">
       <CommonHeader class="common-header"></CommonHeader>
       <el-main class="right-main">
         <!-- 使用CSS类切换而不是transition，避免影响Plotly的handleResize -->
-        <div :class="['main-content', { 'ai-hidden': mainStore.aiVisible }]">
+        <div :class="['main-content', { 'ai-hidden': !mainStore.isMobile && mainStore.aiVisible }]">
           <router-view></router-view>
         </div>
         <!-- AI 对话栏 -->
         <div
-          :class="['ai-chat', { 'ai-visible': mainStore.aiVisible }]"
+          :class="['ai-chat', { 'ai-visible': mainStore.aiVisible }, {'ai-chat--mobile': mainStore.isMobile}]"
           @transitionend="onTransitionEnd"
           @webkitTransitionEnd="onTransitionEnd">
           <AiChatBox @close="mainStore.toggleAi"/>
@@ -95,11 +109,34 @@ function onTransitionEnd() {
       .ai-chat.ai-visible {
         width: 360px;      /* 显示时设置为360px */
       }
+      /* 移动端：AI面板全屏覆盖 */
+      .ai-chat.ai-chat--mobile {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        height: 100vh;
+        width: 0;
+        border-left: none;
+        z-index: 2000;
+        transition: width 0.3s ease;
+      }
+      .ai-chat.ai-chat--mobile.ai-visible {
+        width: 100%;
+      }
     }
   }
   .common-aside {
     box-sizing: border-box;
     background: #545c64;
+  }
+  .drawer-aside {
+    height: 100%;
+  }
+}
+@media (max-width: 768px) {
+  .common-layout {
+    border: none;
   }
 }
 </style>

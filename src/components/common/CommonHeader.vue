@@ -7,7 +7,8 @@
 <template>
   <el-header>
     <div class="l-content">
-      <el-button size="small"
+      <!-- PC端：收起/展开侧边栏 -->
+      <el-button v-if="!mainStore.isMobile" size="small"
         type="primary"
         @click="handleCollapse"
         >
@@ -15,7 +16,16 @@
           <Expand />
         </el-icon>
       </el-button>
-      <el-breadcrumb separator="/" class="bread">
+      <!-- 移动端：汉堡按钮打开抽屉 -->
+      <el-button v-else size="small"
+        type="primary"
+        @click="handleToggleAside"
+        >
+        <el-icon :size="20">
+          <Menu />
+        </el-icon>
+      </el-button>
+      <el-breadcrumb v-if="!mainStore.isMobile" separator="/" class="bread">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item :to="mainStore.currentMenu.path" v-if="mainStore.currentMenu">{{ mainStore.currentMenu.label }}</el-breadcrumb-item>
       </el-breadcrumb>
@@ -57,6 +67,10 @@ const getImageSrc = (name:string) => {
 
 const handleCollapse = () => {
   mainStore.updateIsCollapse()
+}
+
+const handleToggleAside = () => {
+  mainStore.toggleAside()
 }
 
 const handleToggleAi = () => {

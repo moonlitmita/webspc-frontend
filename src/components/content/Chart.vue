@@ -308,4 +308,27 @@ watch(() => lineStore.cList, (newList) => {
     50%      { opacity: 1; }
   }
 }
+/* 移动端：图表适配 */
+@media (max-width: 768px) {
+  .chart-container {
+    .dynamic-charts {
+      .el-card {
+        :deep(.el-card__body) {
+          .dynamic-item {
+            min-width: 320px;
+          }
+        }
+      }
+    }
+    .fixed-container {
+      .fixed-charts {
+        grid-template-columns: 1fr !important;
+        .chart-item_1,
+        .chart-item_2 {
+          grid-area: auto;
+        }
+      }
+    }
+  }
+}
 </style>
