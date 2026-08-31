@@ -44,6 +44,7 @@ async function start() {
   for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
   }
+  useMainStore().initDevice()
   await init()
   app.use(router)
   app.mount('#app')

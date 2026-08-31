@@ -18,7 +18,9 @@ interface State {
   token: string,
   currentTab: number,
   aiVisible: boolean,
-  isRealTimeMode: boolean
+  isRealTimeMode: boolean,
+  isMobile: boolean,
+  asideOpen: boolean
 }
 export const useMainStore = defineStore('main', {
   state: ():State => {
@@ -42,18 +44,43 @@ export const useMainStore = defineStore('main', {
       token: '',
       currentTab: 0,
       aiVisible: false,
-      isRealTimeMode: false
+      isRealTimeMode: false,
+      isMobile: false,
+      asideOpen: false
     }
   },
   getters: {},
   actions: {
+    // 响应式设备检测：<=768px 视为移动端
+    initDevice() {
+      const mq = window.matchMedia('(max-width: 768px)')
+      const handleChange = (e: MediaQueryListEvent) => {
+        this.isMobile = e.matches
+        if (!e.matches) {
+          this.asideOpen = false
+          this.isCollapse = false
+        }
+        window.dispatchEvent(new Event('resize'))
+      }
+      this.isMobile = mq.matches
+      this.asideOpen = false
+      mq.addEventListener('change', handleChange)
+    },
     updateIsCollapse() {
       this.isCollapse = !this.isCollapse
+    },
+    toggleAside() {
+      this.asideOpen = !this.asideOpen
+    },
+    closeAside() {
+      this.asideOpen = false
     },
     toggleAi() {
       this.aiVisible = !this.aiVisible
       const chatStore = useChatStore()
-      if(!this.aiVisible) {
+      if(this.aiVisible) {
+        this.asideOpen = false
+      } else {
         chatStore.endSession()
       }
     },
