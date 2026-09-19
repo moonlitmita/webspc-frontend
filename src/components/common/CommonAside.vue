@@ -5,16 +5,16 @@
 */
 
 <template>
-  <el-aside :width="imCollapse?'80px':'200px'">
+  <el-aside :width="inDrawer ? '100%' : (imCollapse ? '80px' : '200px')">
     <el-menu
       class="el-menu-vertical-demo"
       background-color="#545c64"
       text-color="#fff"
-      :collapse = "imCollapse"
+      :collapse = "inDrawer ? false : imCollapse"
       :collapse-transition="false"
     >
-      <h3 v-show="imCollapse">SPC</h3>
-      <h3 v-show="!imCollapse">SPC管理</h3>
+      <h3 v-show="inDrawer ? false : imCollapse">SPC</h3>
+      <h3 v-show="inDrawer ? true : !imCollapse">SPC管理</h3>
         <el-menu-item 
           :index="item.path" 
           v-for="item in noChildren()" 
@@ -37,6 +37,13 @@ const mainStore = useMainStore()
 let {isCollapse: imCollapse} = storeToRefs(mainStore)
 const router = useRouter()
 
+defineProps<{
+  inDrawer?: boolean
+}>()
+const emit = defineEmits<{
+  (e: 'navigate'): void
+}>()
+
 const noChildren = () => {
   return mainStore.menu.filter((item)=>!item.children)
 }
@@ -46,6 +53,7 @@ const hasChildren = () => {
 const clickMenu = (item: Tab) => {
   router.push({name:item.name})
   mainStore.selectMenu(item)
+  emit('navigate')
 }
 </script>
 <style lang="less">

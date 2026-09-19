@@ -38,8 +38,8 @@ const envConfig: EnvConfigMap = {
     mockApi : ''
   },
   production: {
-    baseApi: 'https://webspc.top/backend',
-    chatApi: 'https://webspc.top/ai',
+    baseApi: '/backend',
+    chatApi: '/ai',
     mockApi : ''
   }
 }

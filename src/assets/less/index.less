@@ -1,1 +1,32 @@
 @import "./reset.less";
+
+/* ===== 移动端全局适配 ===== */
+@media (max-width: 768px) {
+  /* 移动端抽屉菜单 */
+  .mobile-aside-drawer {
+    .el-drawer__body {
+      padding: 0;
+    }
+    .el-menu {
+      height: 100%;
+    }
+  }
+
+  /* 对话框接近全屏宽度 */
+  .el-dialog {
+    --el-dialog-width: 95% !important;
+  }
+
+  /* 对话框内表单列在移动端单列展示 */
+  .el-dialog .el-col {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* 分页器在大页面下紧凑显示 */
+  .el-pagination {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}

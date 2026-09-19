@@ -47,6 +47,7 @@ Language: TypeScript
 - [1.2 WebSPC Add-on: Automatic Data Collection](https://www.bilibili.com/video/BV1ANQbY9EpH?spm_id_from=333.788.recommend_more_video.1&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 
 - [1.3 WebSPC Usage Method - AI Integration](https://www.bilibili.com/video/BV1KK6xB2Ecx/?vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
+
 # 2. Development Environment Setup
 
 ## 2.1 Clone
@@ -63,7 +64,13 @@ Ctrl + click the local link in the terminal to open the login page
 
 # 3. Production Deployment
 
-## Videos
+For a detailed project deployment guide, contact the author:
+
+- [K3S Basic Environment Setup](https://www.bilibili.com/cheese/play/ep2460548)
+
+- WebSPC Project Deployment Detailed Documentation and Deployment Files
+
+## Introduction:
 
 - [3.1 WebSPC Deployment Part 1](https://www.bilibili.com/video/BV11RQAYWE82/?spm_id_from=333.1387.collection.video_card.click&vd_source=690fc386f07d30bd01bc5ca11d98ecf3)
 
@@ -93,21 +100,13 @@ Tutorial channel: https://space.bilibili.com/1643315584
 
 Many thanks to Allen & Jason and their team for the selfless sharing!
 
-# 4. Live Demo
-
-- URL: https://webspc.top
-
-- Username: admin
-
-- Password: Contact the author
-
 - If this project has been helpful to you, why not buy the author a cup of coffee?
 
 Scan the QR code below with Wexin to donate:
 
 - <img src="src/assets/images/donate.png" width="200" alt="Wexin Donation QR">
 
-# 5. Technical Support
+# 4. Technical Support
 
 Author: Yu Wang
 
